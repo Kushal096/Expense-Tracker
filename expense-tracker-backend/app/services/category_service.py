@@ -1,6 +1,6 @@
 # services/category_service.py
 from sqlalchemy.orm import Session
-from app.models.category import Category
+from app.models.category_models import Category
 
 
 Default_CATEGORIES = ["Food", "Transport", "Entertainment", "Utilities", "Health", "Other"]

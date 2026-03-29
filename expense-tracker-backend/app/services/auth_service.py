@@ -4,11 +4,11 @@ Business logic for password hashing, user creation, lookup, and JWT generation.
 """
 
 from sqlalchemy.orm import Session
-from app.models.user import User
+from app.models.user_models import User
 from app.schemas.user_schema import UserCreate
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
-from jose import jwt
+from jose import jwt, JWTError
 import os
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -55,3 +55,14 @@ def create_access_token(data: dict) -> str:
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+def verify_token(token: str) -> dict | None:
+    """Verify JWT token and return decoded payload.
+
+    Returns None if token is invalid or expired.
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except JWTError:
+        return None

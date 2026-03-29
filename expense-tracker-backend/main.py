@@ -6,8 +6,8 @@ Frontend developers can use `/docs` to inspect request/response contracts.
 
 from fastapi import FastAPI
 from app.db.database import Base, engine
-from app.routes.auth import router as auth_router
-from app.routes.category import router as category_router
+from app.routes.auth_routes import router as auth_router
+from app.routes.category_routes import router as category_router
 from app.services.category_service import seed_default_categories
 from sqlalchemy.orm import Session
 
