@@ -19,6 +19,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post(
     "/signup",
+    status_code=status.HTTP_201_CREATED,
     response_model=UserResponse,
     summary="Register a new user",
     description="Creates a user account if the email is not already registered.",
@@ -28,6 +29,7 @@ def signup(request: Request, user: UserCreate, db: Session = Depends(get_db)):
     """Create a new user.
 
     Returns the created user object (without password hash).
+    Frontend can use returned `id` and `created_at` directly after signup.
     """
     if get_user_by_email(db, user.email):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
@@ -41,7 +43,11 @@ def signup(request: Request, user: UserCreate, db: Session = Depends(get_db)):
 )
 @limiter.limit("5/minute")
 def login(request: Request, user: UserLogin, db: Session = Depends(get_db)):
-    """Authenticate user and return JWT token for Authorization header."""
+    """Authenticate user and return JWT token for Authorization header.
+
+    Header format for subsequent protected calls:
+    `Authorization: Bearer <access_token>`
+    """
     db_user = get_user_by_email(db, user.email)
     if not db_user or not verify_password(user.password, db_user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")

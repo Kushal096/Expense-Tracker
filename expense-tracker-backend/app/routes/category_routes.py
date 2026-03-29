@@ -1,6 +1,13 @@
+"""Category routes.
+
+Frontend-relevant notes:
+- `GET /categories/` is public.
+- `POST`, `PUT`, and `DELETE` require `Authorization: Bearer <token>`.
+"""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.schemas.category_schema import CategoryBase
+from app.schemas.category_schema import CategoryBase, CategoryResponse
 from app.services.category_service import (
     get_all_categories,
     create_category,
@@ -16,28 +23,31 @@ router = APIRouter(prefix="/categories", tags=["categories"])
 
 @router.get(
     "/",
+    response_model=list[CategoryResponse],
     summary="Get all categories",
     description="Returns a list of all expense categories.",
 )
 def read_categories(db: Session = Depends(get_db)):
-    """Fetch all categories."""
+    """Fetch all categories for dropdown/select UIs in frontend forms."""
     return get_all_categories(db)
 
 
 
 @router.post(
     "/",
+    response_model=CategoryResponse,
     dependencies=[Depends(get_current_user)],
     summary="Create a new category",
     description="Creates a new expense category with a unique name.",
 )
 def create_new_category(category: CategoryBase, db: Session = Depends(get_db)):
-    """Create a new category."""
+    """Create a category and return the created entity."""
     return create_category(db, category.name)
 
 
 @router.put(
     "/{category_id}",
+    response_model=CategoryResponse,
     dependencies=[Depends(get_current_user)],
     summary="Update a category",
     description="Updates the name of an existing category by ID.",
@@ -45,7 +55,7 @@ def create_new_category(category: CategoryBase, db: Session = Depends(get_db)):
 def update_existing_category(
     category_id: int, category: CategoryBase, db: Session = Depends(get_db)
 ):
-    """Update an existing category."""
+    """Update an existing category and return the updated entity."""
     updated_category = update_category(db, category_id, category.name)
     if not updated_category:
         raise HTTPException(
@@ -61,7 +71,7 @@ def update_existing_category(
     description="Deletes an existing category by ID.",
 )
 def delete_existing_category(category_id: int, db: Session = Depends(get_db)):
-    """Delete an existing category."""
+    """Delete an existing category and return confirmation message."""
     deleted_category = delete_category(db, category_id)
     if not deleted_category:
         raise HTTPException(

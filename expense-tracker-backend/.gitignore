@@ -2,6 +2,8 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyd
+*.pyo
 
 # Virtual environments
 .venv/
@@ -19,11 +21,15 @@ build/
 dist/
 *.egg-info/
 .eggs/
+pip-wheel-metadata/
 
 # Tool caches
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.pyre/
+.tox/
+.nox/
 .coverage
 .coverage.*
 htmlcov/
@@ -34,9 +40,19 @@ htmlcov/
 *.swp
 *.swo
 
+# Type checker / notebook
+.ipynb_checkpoints/
+
 # OS files
 .DS_Store
 Thumbs.db
 
 # Logs
 *.log
+
+# Local databases
+*.sqlite3
+*.db
+
+# Alembic
+alembic/versions/*.pyc
