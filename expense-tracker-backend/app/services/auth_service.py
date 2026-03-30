@@ -5,7 +5,7 @@ Business logic for password hashing, user creation, lookup, and JWT generation.
 
 from sqlalchemy.orm import Session
 from app.models.user_models import User
-from app.schemas.user_schema import UserCreate
+from app.schemas.user_schema import UserCreate, UserResponse
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
@@ -30,14 +30,14 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 # Create user
-def create_user(db: Session, user: UserCreate) -> User:
+def create_user(db: Session, user: UserCreate) -> UserResponse:
     """Create and persist a new user record."""
     hashed = hash_password(user.password)
     db_user = User(email=user.email, username=user.username, password_hash=hashed)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return db_user
+    return UserResponse.model_validate(db_user)
 
 # Get user by email
 def get_user_by_email(db: Session, email: str) -> User | None:
