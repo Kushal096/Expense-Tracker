@@ -1,4 +1,5 @@
 from sqlalchemy import DateTime, Column, Integer, String
+from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from app.db.database import Base
 
@@ -16,3 +17,5 @@ class User(Base):
     username = Column(String, nullable=False)
     password_hash = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    expenses = relationship("Expense", back_populates="user")

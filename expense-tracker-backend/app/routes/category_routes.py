@@ -45,7 +45,7 @@ def create_new_category(category: CategoryBase, db: Session = Depends(get_db)):
     return create_category(db, category.name)
 
 
-@router.put(
+@router.patch(
     "/{category_id}",
     response_model=CategoryResponse,
     dependencies=[Depends(get_current_user)],

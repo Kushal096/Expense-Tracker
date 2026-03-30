@@ -11,13 +11,13 @@ from app.services.auth_service import verify_token
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
+def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
     """Resolve and validate JWT payload from bearer token.
 
     Returns decoded token payload when valid.
     Raises 401 when token is invalid or expired.
     """
     payload = verify_token(token)
-    if not payload:
+    if not payload or payload.get("user_id") is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
     return payload

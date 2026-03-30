@@ -1,11 +1,11 @@
 # Expense Tracker Backend
 
-FastAPI backend for authentication and category management in the Expense Tracker project.
+FastAPI backend for authentication, category management, and user expense tracking.
 
 ## Features
-- User signup
-- User login with JWT bearer token
-- Protected category CRUD endpoints
+- User signup and login with JWT bearer authentication
+- Public category listing and protected category management
+- Protected expense CRUD for authenticated users only
 - Default category seeding on startup
 
 ## Tech Stack
@@ -32,16 +32,20 @@ expense-tracker-backend/
     │   └── auth_dependencies.py
     ├── models/
     │   ├── user_models.py
-    │   └── category_models.py
+    │   ├── category_models.py
+    │   └── expense_models.py
     ├── routes/
     │   ├── auth_routes.py
-    │   └── category_routes.py
+    │   ├── category_routes.py
+    │   └── expense_route.py
     ├── schemas/
     │   ├── user_schema.py
-    │   └── category_schema.py
+    │   ├── category_schema.py
+    │   └── expense_schema.py
     └── services/
         ├── auth_service.py
-        └── category_service.py
+        ├── category_service.py
+        └── expense_service.py
 ```
 
 ## Environment Variables
@@ -85,147 +89,72 @@ ACCESS_TOKEN_EXPIRE_MINUTES=3600
 http://127.0.0.1:8000
 ```
 
-## API Reference (Frontend-Focused)
+## Authentication
 
-### Auth APIs
-
-#### `POST /auth/signup`
-Creates a new user.
-
-Request body:
-
-```json
-{
-  "email": "alice@example.com",
-  "username": "alice",
-  "password": "StrongPassword@123"
-}
-```
-
-Success response (`201`):
-
-```json
-{
-  "id": 1,
-  "email": "alice@example.com",
-  "username": "alice",
-  "created_at": "2026-03-25T09:30:00.000000+00:00"
-}
-```
-
-Errors:
-- `400`: email already registered
-- `422`: validation error
-
-#### `POST /auth/login`
-Authenticates user and returns JWT.
-
-Request body:
-
-```json
-{
-  "email": "alice@example.com",
-  "password": "StrongPassword@123"
-}
-```
-
-Success response (`200`):
-
-```json
-{
-  "access_token": "<jwt_token>",
-  "token_type": "bearer"
-}
-```
-
-Errors:
-- `401`: invalid credentials
-- `422`: validation error
-
-### Category APIs
-
-> `POST`, `PUT`, and `DELETE` category routes are protected and require a bearer token.
-
-#### `GET /categories/`
-Returns all categories.
-
-Success response (`200`):
-
-```json
-[
-  { "id": 1, "name": "Food" },
-  { "id": 2, "name": "Transport" }
-]
-```
-
-#### `POST /categories/`
-Creates a category (authenticated).
-
-Headers:
+Protected endpoints require:
 
 ```http
 Authorization: Bearer <access_token>
 ```
 
-Request body:
+Get token from `POST /auth/login`.
+
+## API Reference
+
+### Auth
+
+- `POST /auth/signup` - register a user (`201`)
+- `POST /auth/login` - get JWT token (`200`)
+
+Common auth errors:
+- `400` email already registered
+- `401` invalid credentials
+- `422` validation error
+
+### Categories
+
+- `GET /categories/` - list all categories (public)
+- `POST /categories/` - create category (protected)
+- `PATCH /categories/{category_id}` - update category (protected)
+- `DELETE /categories/{category_id}` - delete category (protected)
+
+Common category errors:
+- `401` unauthorized (protected routes)
+- `404` category not found
+
+### Expenses
+
+All expense routes are protected and scoped to the authenticated user.
+
+- `GET /expenses/` - list current user expenses
+- `POST /expenses/` - create expense
+- `GET /expenses/{expense_id}` - get one expense
+- `PATCH /expenses/{expense_id}` - update expense
+- `DELETE /expenses/{expense_id}` - delete expense
+
+Example expense request body:
 
 ```json
 {
-  "name": "Travel"
+  "amount": 250.0,
+  "category_id": 1,
+  "description": "Groceries",
+  "date": "2026-03-25T09:30:00Z"
 }
 ```
 
-#### `PUT /categories/{category_id}`
-Updates category name by ID (authenticated).
-
-Request body:
-
-```json
-{
-  "name": "Bills"
-}
-```
-
-Errors:
-- `404`: category not found
-
-#### `DELETE /categories/{category_id}`
-Deletes category by ID (authenticated).
-
-Errors:
-- `404`: category not found
+Common expense errors:
+- `401` unauthorized
+- `404` expense not found
+- `422` validation error
 
 ## Frontend Integration Notes
-- Use token from `/auth/login` for protected routes.
-- Send `Authorization: Bearer <token>` in request headers.
-- `token_type` is always `bearer`.
-- `created_at` is an ISO UTC timestamp.
-- Prefer frontend constants for API paths:
-  - `/auth/signup`
-  - `/auth/login`
-  - `/categories/`
-- Prefer handling these error statuses globally in frontend API client:
-  - `401` unauthorized
-  - `404` resource not found
-  - `422` validation error
-
-## Example Frontend Usage
-
-```ts
-const loginResponse = await fetch("http://127.0.0.1:8000/auth/login", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ email, password }),
-});
-
-const { access_token } = await loginResponse.json();
-
-await fetch("http://127.0.0.1:8000/categories/", {
-  headers: { Authorization: `Bearer ${access_token}` },
-});
-```
+- Store and reuse `access_token` from `/auth/login`.
+- Send `Authorization: Bearer <token>` for protected routes.
+- `token_type` returned from login is always `bearer`.
+- Timestamps are ISO datetime values.
 
 ## Development Notes
 - Keep `SECRET_KEY` private and out of Git.
-- Use separate `.env` values for local, staging, and production.
-- For production, configure strict CORS and HTTPS.
+- Use separate `.env` values for local/staging/production.
+- Restrict CORS origins before production deployment.

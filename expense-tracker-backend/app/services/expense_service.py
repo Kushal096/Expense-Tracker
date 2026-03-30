@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
 from app.models.expense_models import Expense
-from app.schemas.expense_schema import ExpenseCreate, ExpenseResponse
+from app.schemas.expense_schema import ExpenseBase, ExpenseResponse
 
 
-def create_expense(db: Session, expense_data: ExpenseCreate, user_id: int) -> ExpenseResponse:
+def create_expense(db: Session, expense_data: ExpenseBase, user_id: int) -> ExpenseResponse:
     """Create a new expense record in the database."""
     expense = Expense(
         amount=expense_data.amount,
@@ -29,7 +29,7 @@ def get_expense_by_id(db: Session, expense_id: int, user_id: int) -> ExpenseResp
         return ExpenseResponse.model_validate(expense)
     return None
 
-def update_expense(db: Session, expense_id: int, expense_data: ExpenseCreate, user_id: int) -> ExpenseResponse | None:
+def update_expense(db: Session, expense_id: int, expense_data: ExpenseBase, user_id: int) -> ExpenseResponse | None:
     """Update an existing expense record."""
     expense = db.query(Expense).filter(Expense.id == expense_id, Expense.user_id == user_id).first()
     if not expense:
