@@ -5,6 +5,7 @@ Frontend developers can use `/docs` to inspect request/response contracts.
 """
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import Base, engine
 from app.routes.auth_routes import router as auth_router
 from app.routes.category_routes import router as category_router
@@ -15,6 +16,14 @@ app = FastAPI(
 	title="Expense Tracker Backend",
 	version="1.0.0",
 	description="Backend API for the Expense Tracker application, built with FastAPI and SQLAlchemy."
+)
+
+app.add_middleware(
+	CORSMiddleware,
+	allow_origins=["*"],
+	allow_credentials=True,
+	allow_methods=["*"],
+	allow_headers=["*"],
 )
 
 

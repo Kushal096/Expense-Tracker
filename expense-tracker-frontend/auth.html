@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login & Signup</title>
+    <link rel="stylesheet" href="styles/auth.css">
+</head>
+<body>
+
+<div class="container">
+
+    <div class="form-box" id="login-box">
+        <h2>LOGIN</h2>
+
+        <input type="email" placeholder="Enter your email">
+        <input type="password" placeholder="Enter your password">
+
+        <a href="#" class="forgot">Forgot Password?</a>
+
+        <button class="btn">LOGIN</button>
+
+        <div class="divider">or continue with</div>
+
+        <button class="google">Google</button>
+
+        <p>Don't have an account? <span id="goSignup">Signup</span></p>
+    </div>
+
+    <div class="form-box hidden" id="signup-box">
+        <h2>CREATE ACCOUNT</h2>
+
+        <input type="text" placeholder="Enter your full name">
+        <input type="email" placeholder="Enter your email">
+        <input type="password" placeholder="Enter your password">
+        <input type="password" placeholder="Confirm your password">
+
+        <button class="btn">Signup</button>
+
+        <div class="divider">or continue with</div>
+
+        <button class="google">Google</button>
+
+        <p>Already have an account? <span id="goLogin">Login</span></p>
+    </div>
+
+</div>
+
+<script src="scripts/auth.js"></script>
+</body>
+</html>
