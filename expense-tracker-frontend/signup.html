@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup | Expense Tracker</title>
+    <link rel="stylesheet" href="styles/auth.css">
+</head>
+<body>
+<div class="auth-page">
+    <div class="auth-card">
+        <h1>Create account</h1>
+        <p class="subtitle">Sign up and start managing your expenses.</p>
+
+        <form id="signup-form" class="auth-form" novalidate>
+            <label for="signup-username">Username</label>
+            <input id="signup-username" name="username" type="text" placeholder="Your username" minlength="2" required>
+
+            <label for="signup-email">Email</label>
+            <input id="signup-email" name="email" type="email" placeholder="you@example.com" required>
+
+            <label for="signup-password">Password</label>
+            <input id="signup-password" name="password" type="password" placeholder="At least 6 characters" minlength="6" required>
+
+            <label for="signup-confirm-password">Confirm Password</label>
+            <input id="signup-confirm-password" name="confirmPassword" type="password" placeholder="Re-enter your password" minlength="6" required>
+
+            <button type="submit" class="btn-primary" id="signup-btn">Create Account</button>
+        </form>
+
+        <p id="signup-message" class="message" aria-live="polite"></p>
+
+        <p class="switch-link">Already have an account? <a href="login.html">Log in</a></p>
+    </div>
+</div>
+
+<script src="scripts/signup.js"></script>
+</body>
+</html>
