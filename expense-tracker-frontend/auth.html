@@ -1,47 +1,200 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Login & Signup</title>
-    <link rel="stylesheet" href="styles/auth.css">
+  <title>Expense App</title>
+  <link rel="stylesheet" href="styles/auth.css">
 </head>
 <body>
 
-<div class="container">
+<!-- AUTH PAGE -->
+<div id="authPage">
+  <!-- SIGN IN -->
+  <div id="signin" class="auth-box">
+    <h1>ENTER</h1>
+    <input type="text" placeholder="Email address">
+    <input type="password" placeholder="Password">
+    <button onclick="goApp()">SIGN IN →</button>
+    <p onclick="showSignup()">CREATE ACCOUNT</p>
+  </div>
 
-    <div class="form-box" id="login-box">
-        <h2>LOGIN</h2>
+  <!-- SIGN UP -->
+  <div id="signup" class="auth-box" style="display:none;">
+    <h1>SIGN UP</h1>
+    <input type="text" placeholder="Full name">
+    <input type="text" placeholder="Email address">
+    <input type="password" placeholder="Password">
+    <button>CREATE ACCOUNT →</button>
+    <p onclick="showSignin()">BACK TO SIGN IN</p>
+  </div>
+</div>
 
-        <input type="email" placeholder="Enter your email">
-        <input type="password" placeholder="Enter your password">
+<!-- MAIN APP -->
+<div id="app">
 
-        <a href="#" class="forgot">Forgot Password?</a>
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="logo">EXPENSE</div>
+    <div class="nav">
+      <div onclick="showPage('dashboard')" id="navDashboard" class="active">DASHBOARD</div>
+      <div onclick="showPage('expenses')" id="navExpenses">EXPENSES</div>
+      <div onclick="showPage('income')" id="navIncome">INCOME</div>
+    </div>
+  </div>
 
-        <button class="btn">LOGIN</button>
-
-        <div class="divider">or continue with</div>
-
-        <button class="google">Google</button>
-
-        <p>Don't have an account? <span id="goSignup">Signup</span></p>
+  <!-- DASHBOARD -->
+  <div class="main page" id="dashboard">
+    <h1>DASHBOARD</h1>
+    <div class="card dashboard-cards">
+      <div>
+        <small>TOTAL BALANCE</small>
+        <h2>$24,580.00</h2>
+      </div>
+      <div>
+        <small>TOTAL EXPENSE</small>
+        <h2>$8,420.00</h2>
+      </div>
+      <div>
+        <small>TOTAL INCOME</small>
+        <h2>$33,000.00</h2>
+      </div>
+      <div>
+        <small>MONTHLY SAVINGS</small>
+        <h2>$24,580.00</h2>
+      </div>
     </div>
 
-    <div class="form-box hidden" id="signup-box">
-        <h2>CREATE ACCOUNT</h2>
-
-        <input type="text" placeholder="Enter your full name">
-        <input type="email" placeholder="Enter your email">
-        <input type="password" placeholder="Enter your password">
-        <input type="password" placeholder="Confirm your password">
-
-        <button class="btn">Signup</button>
-
-        <div class="divider">or continue with</div>
-
-        <button class="google">Google</button>
-
-        <p>Already have an account? <span id="goLogin">Login</span></p>
+    <div class="transactions-header">
+      <h2 class="section-title">RECENT TRANSACTIONS</h2>
+      <a href="#" class="view-all">VIEW ALL →</a>
     </div>
+
+    <table>
+      <tr>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Amount</th>
+        <th>Date</th>
+      </tr>
+      <tr>
+        <td>Grocery Shopping</td>
+        <td>Food</td>
+        <td>-$125.50</td>
+        <td>2026-04-03</td>
+      </tr>
+      <tr>
+        <td>Freelance Project</td>
+        <td>Income</td>
+        <td>+$2,500.00</td>
+        <td>2026-04-02</td>
+      </tr>
+      <tr>
+        <td>Electric Bill</td>
+        <td>Utilities</td>
+        <td>-$89.00</td>
+        <td>2026-04-02</td>
+      </tr>
+      <tr>
+        <td>Restaurant Dinner</td>
+        <td>Food</td>
+        <td>-$67.30</td>
+        <td>2026-04-01</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- EXPENSES -->
+  <div class="main page" id="expenses" style="display:none;">
+    <h1>EXPENSES</h1>
+    <button class="top-btn">ADD EXPENSE →</button>
+    <div class="card single">
+      <small>TOTAL EXPENSES</small>
+      <h2>$469.28</h2>
+    </div>
+    <table>
+      <tr>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr>
+      <tr>
+        <td>Grocery Shopping</td>
+        <td>Food</td>
+        <td>$125.50</td>
+        <td>2026-04-03</td>
+        <td><span class="icon">✏</span> <span class="icon">🗑</span></td>
+      </tr>
+      <tr>
+        <td>Electric Bill</td>
+        <td>Utilities</td>
+        <td>$89.00</td>
+        <td>2026-04-02</td>
+        <td><span class="icon">✏</span> <span class="icon">🗑</span></td>
+      </tr>
+      <tr>
+        <td>Restaurant Dinner</td>
+        <td>Food</td>
+        <td>$67.30</td>
+        <td>2026-04-01</td>
+        <td><span class="icon">✏</span> <span class="icon">🗑</span></td>
+      </tr>
+      <tr>
+        <td>Gas Station</td>
+        <td>Transportation</td>
+        <td>$45.00</td>
+        <td>2026-03-31</td>
+        <td><span class="icon">✏</span> <span class="icon">🗑</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- INCOME -->
+  <div class="main page" id="income" style="display:none;">
+    <h1>INCOME</h1>
+    <button class="top-btn">ADD INCOME →</button>
+    <div class="card single">
+      <small>TOTAL INCOME</small>
+      <h2>$9950.00</h2>
+    </div>
+    <table>
+      <tr>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr>
+      <tr>
+        <td>Monthly Salary</td>
+        <td>Salary</td>
+        <td>$5000.00</td>
+        <td>2026-04-01</td>
+        <td><span class="icon">✏</span> <span class="icon">🗑</span></td>
+      </tr>
+      <tr>
+        <td>Freelance Project</td>
+        <td>Freelance</td>
+        <td>$2500.00</td>
+        <td>2026-04-02</td>
+        <td><span class="icon">✏</span> <span class="icon">🗑</span></td>
+      </tr>
+      <tr>
+        <td>Dividend Payment</td>
+        <td>Investment</td>
+        <td>$450.00</td>
+        <td>2026-03-30</td>
+        <td><span class="icon">✏</span> <span class="icon">🗑</span></td>
+      </tr>
+      <tr>
+        <td>Bonus</td>
+        <td>Salary</td>
+        <td>$1200.00</td>
+        <td>2026-03-28</td>
+        <td><span class="icon">✏</span> <span class="icon">🗑</span></td>
+      </tr>
+    </table>
+  </div>
 
 </div>
 

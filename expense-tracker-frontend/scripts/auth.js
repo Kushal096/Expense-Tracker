@@ -1,18 +1,25 @@
-// elements
-const loginBox = document.getElementById("login-box");
-const signupBox = document.getElementById("signup-box");
+function showSignup() {
+  document.getElementById("signin").style.display = "none";
+  document.getElementById("signup").style.display = "block";
+}
 
-const goSignup = document.getElementById("goSignup");
-const goLogin = document.getElementById("goLogin");
+function showSignin() {
+  document.getElementById("signup").style.display = "none";
+  document.getElementById("signin").style.display = "block";
+}
 
-// signup
-goSignup.addEventListener("click", () => {
-    loginBox.classList.add("hidden");
-    signupBox.classList.remove("hidden");
-});
+function goApp() {
+  document.getElementById("authPage").style.display = "none";
+}
 
-// login
-goLogin.addEventListener("click", () => {
-    signupBox.classList.add("hidden");
-    loginBox.classList.remove("hidden");
-});
+function showPage(page) {
+  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+  document.getElementById(page).style.display = "block";
+
+  document.querySelectorAll(".nav div").forEach(n => n.classList.remove("active"));
+  document.getElementById("nav" + capitalize(page)).classList.add("active");
+}
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
