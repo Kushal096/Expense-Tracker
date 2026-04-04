@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard - Expense App</title>
+  <link rel="stylesheet" href="styles/dashboard.css">
+  <script src="scripts/api.js" defer></script>
+  <script src="scripts/dashboard.js" defer></script>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="logo">
+      <h1>EXPENSE</h1>
+    </div>
+    <div class="nav" style="flex: 1;">
+      <a href="dashboard.html" class="active">Dashboard</a>
+      <a href="expenses.html">Expenses</a>
+      <a href="income.html">Income</a>
+      <a href="login.html" id="logoutLink" style="margin-top: auto;">Logout</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="header-container">
+      <h1>DASHBOARD</h1>
+      <div class="divider"></div>
+    </div>
+
+    <div class="financial-overview-container">
+      <div class="overview-header">FINANCIAL OVERVIEW</div>
+      <div class="overview-cards">
+        <div class="card-item">
+          <small>TOTAL BALANCE</small>
+          <h2>$0.00</h2>
+          <span class="trend">0.0%</span>
+        </div>
+        <div class="card-item">
+          <small>TOTAL EXPENSE</small>
+          <h2>$0.00</h2>
+          <span class="trend">0.0%</span>
+        </div>
+        <div class="card-item">
+          <small>TOTAL INCOME</small>
+          <h2>$0.00</h2>
+          <span class="trend">0.0%</span>
+        </div>
+        <div class="card-item no-border">
+          <small>MONTHLY SAVINGS</small>
+          <h2>$0.00</h2>
+          <span class="trend">0.0%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="transactions-section">
+      <div class="transactions-header">
+        <h2 class="section-title">RECENT TRANSACTIONS</h2>
+        <a href="expenses.html" class="view-all" id="viewAllLink">View All &rarr;</a>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>TITLE</th>
+              <th>CATEGORY</th>
+              <th>AMOUNT</th>
+              <th>DATE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Dynamic data will be inserted here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

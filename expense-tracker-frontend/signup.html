@@ -1,39 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signup | Expense Tracker</title>
-    <link rel="stylesheet" href="styles/auth.css">
+  <title>Signup - Expense App</title>
+  <link rel="stylesheet" href="styles/signup.css">
+  <script src="scripts/api.js" defer></script>
+  <script src="scripts/signup.js" defer></script>
 </head>
 <body>
-<div class="auth-page">
-    <div class="auth-card">
-        <h1>Create account</h1>
-        <p class="subtitle">Sign up and start managing your expenses.</p>
-
-        <form id="signup-form" class="auth-form" novalidate>
-            <label for="signup-username">Username</label>
-            <input id="signup-username" name="username" type="text" placeholder="Your username" minlength="2" required>
-
-            <label for="signup-email">Email</label>
-            <input id="signup-email" name="email" type="email" placeholder="you@example.com" required>
-
-            <label for="signup-password">Password</label>
-            <input id="signup-password" name="password" type="password" placeholder="At least 6 characters" minlength="6" required>
-
-            <label for="signup-confirm-password">Confirm Password</label>
-            <input id="signup-confirm-password" name="confirmPassword" type="password" placeholder="Re-enter your password" minlength="6" required>
-
-            <button type="submit" class="btn-primary" id="signup-btn">Create Account</button>
-        </form>
-
-        <p id="signup-message" class="message" aria-live="polite"></p>
-
-        <p class="switch-link">Already have an account? <a href="login.html">Log in</a></p>
+  <div class="auth-page">
+    <div class="auth-box">
+      <div class="header-container">
+        <h1>BEGIN</h1>
+        <div class="divider"></div>
+      </div>
+      <input id="fullName" type="text" placeholder="Full name">
+      <input id="email" type="text" placeholder="Email address">
+      <input id="password" type="password" placeholder="Password">
+      <input id="confirmPassword" type="password" placeholder="Confirm password">
+      <button id="createAccountBtn">CREATE ACCOUNT &rarr;</button>
+      <p id="backToSignin">Already have an account? Sign In</p>
     </div>
-</div>
-
-<script src="scripts/signup.js"></script>
+  </div>
 </body>
 </html>

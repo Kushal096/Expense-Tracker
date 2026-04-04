@@ -1,52 +1,42 @@
-const API_BASE_URL = "http://127.0.0.1:8000";
+const signinBtn = document.getElementById("signinBtn");
+const createAccountLink = document.getElementById("createAccountLink");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
 
-const loginForm = document.getElementById("login-form");
-const loginMessage = document.getElementById("login-message");
-const loginButton = document.getElementById("login-btn");
+const API_BASE_URL = "http://localhost:8000";
 
-function setMessage(message, type = "info") {
-    loginMessage.textContent = message;
-    loginMessage.className = `message ${type}`;
-}
+signinBtn.addEventListener("click", async (e) => {
+  e.preventDefault();
+  const email = emailInput.value;
+  const password = passwordInput.value;
 
-loginForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+  if (!email || !password) {
+    alert("Please enter both email and password.");
+    return;
+  }
 
-    const email = document.getElementById("login-email").value.trim();
-    const password = document.getElementById("login-password").value;
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
 
-    if (!email || !password) {
-        setMessage("Please enter both email and password.", "error");
-        return;
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Login failed");
     }
 
-    loginButton.disabled = true;
-    loginButton.textContent = "Logging in...";
-    setMessage("", "info");
+    const data = await response.json();
+    localStorage.setItem("access_token", data.access_token);
+    window.location.href = "dashboard.html";
+  } catch (error) {
+    alert(`Error: ${error.message}`);
+  }
+});
 
-    try {
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email, password }),
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.detail || "Login failed");
-        }
-
-        localStorage.setItem("access_token", result.access_token);
-        localStorage.setItem("token_type", result.token_type);
-
-        setMessage("Login successful.", "success");
-    } catch (error) {
-        setMessage(error.message || "Unable to login right now.", "error");
-    } finally {
-        loginButton.disabled = false;
-        loginButton.textContent = "Log In";
-    }
+createAccountLink.addEventListener("click", () => {
+  window.location.href = "signup.html";
 });

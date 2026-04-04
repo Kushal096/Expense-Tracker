@@ -1,0 +1,276 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Playfair+Display:wght@400&family=Source+Serif+4:ital,opsz,wght@1,8..60,400&display=swap');
+
+body {
+  margin: 0;
+  font-family: "Georgia", serif;
+  background: white;
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+}
+
+body::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 256px; right: 0; bottom: 0;
+  background-image: linear-gradient(to right, black 1px, transparent 1px);
+  background-size: 16px 100%;
+  opacity: 0.1;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.sidebar {
+  width: 256px;
+  height: 100vh;
+  position: fixed;
+  border-right: 2px solid black;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+}
+
+.logo {
+  padding: 32px;
+  border-bottom: 2px solid black;
+}
+.logo h1 {
+  margin: 0;
+  font-family: 'Playfair Display', serif;
+  font-size: 30px;
+  letter-spacing: 3px;
+  color: black;
+  text-transform: uppercase;
+}
+
+.nav {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav a {
+  display: block;
+  padding: 16px 24px;
+  border: 2px solid black;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: black;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  background: white;
+  transition: all 0.2s;
+}
+
+.nav a:hover {
+  background: #f0f0f0;
+}
+
+.nav .active {
+  background: black;
+  color: white;
+}
+
+.nav .active:hover {
+  background: black;
+}
+
+.logout-link {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  text-transform: uppercase;
+  color: black;
+  text-decoration: underline;
+  opacity: 0.6;
+}
+
+.main {
+  margin-left: 256px;
+  padding: 64px;
+  width: calc(100% - 256px);
+  box-sizing: border-box;
+}
+
+.header-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 64px;
+}
+
+.header-container h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 96px;
+  line-height: 1;
+  text-align: left;
+  margin: 0;
+  color: black;
+  letter-spacing: -2.4px;
+  text-transform: uppercase;
+}
+
+.divider {
+  background-color: black;
+  height: 8px;
+  width: 100%;
+}
+
+.financial-overview-container {
+  background: black;
+  padding: 48px;
+  margin-bottom: 64px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle line background in the overview container */
+.financial-overview-container::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: linear-gradient(to right, white 1px, transparent 1px);
+  background-size: 16px 100%;
+  opacity: 0.1;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.overview-header {
+  font-family: 'JetBrains Mono', monospace;
+  color: white;
+  font-size: 14px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  margin-bottom: 32px;
+  position: relative;
+  z-index: 2;
+}
+
+.overview-cards {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+}
+
+.card-item {
+  flex: 1;
+  border-right: 2px solid white;
+  padding-right: 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-item.no-border {
+  border-right: none;
+  padding-right: 0;
+  margin-left: 34px;
+}
+
+.card-item small {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: white;
+  opacity: 0.7;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  display: block;
+}
+
+.card-item h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 48px;
+  color: white;
+  margin: 0;
+  font-weight: normal;
+}
+
+.card-item .trend {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: white;
+}
+
+.transactions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: black;
+  font-weight: normal;
+  margin: 0;
+}
+
+.view-all {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: black;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.table-container {
+  border: 2px solid black;
+  padding: 2px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background: black;
+  color: white;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 16px 24px;
+  border-right: 1px solid white;
+}
+th:last-child { border-right: none; }
+
+td {
+  padding: 16px 24px;
+  border-bottom: 1px solid black;
+  font-family: 'JetBrains Mono', monospace;
+  color: black;
+}
+tr:last-child td { border-bottom: none; }
+
+.title-cell {
+  font-family: 'Source Serif 4', serif;
+  font-size: 16px;
+}
+
+.category-cell {
+  font-size: 12px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.amount-cell {
+  font-size: 16px;
+}
+
+.date-cell {
+  font-size: 12px;
+  color: #666;
+}

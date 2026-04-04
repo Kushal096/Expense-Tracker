@@ -1,33 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Expense Tracker</title>
-    <link rel="stylesheet" href="styles/auth.css">
+  <title>Login - Expense App</title>
+  <link rel="stylesheet" href="styles/login.css">
+  <script src="scripts/api.js" defer></script>
+  <script src="scripts/login.js" defer></script>
 </head>
 <body>
-<div class="auth-page">
-    <div class="auth-card">
-        <h1>Welcome back</h1>
-        <p class="subtitle">Log in to continue tracking your expenses.</p>
-
-        <form id="login-form" class="auth-form" novalidate>
-            <label for="login-email">Email</label>
-            <input id="login-email" name="email" type="email" placeholder="you@example.com" required>
-
-            <label for="login-password">Password</label>
-            <input id="login-password" name="password" type="password" placeholder="Enter your password" required>
-
-            <button type="submit" class="btn-primary" id="login-btn">Log In</button>
-        </form>
-
-        <p id="login-message" class="message" aria-live="polite"></p>
-
-        <p class="switch-link">Don’t have an account? <a href="signup.html">Create one</a></p>
+  <div class="auth-page">
+    <div class="auth-box">
+      <div class="header-container">
+        <h1>ENTER</h1>
+        <div class="divider"></div>
+      </div>
+      <input id="email" type="text" placeholder="Email address">
+      <input id="password" type="password" placeholder="Password">
+      <button id="signinBtn">SIGN IN &rarr;</button>
+      <p id="createAccountLink">Create Account</p>
     </div>
-</div>
-
-<script src="scripts/login.js"></script>
+  </div>
 </body>
 </html>

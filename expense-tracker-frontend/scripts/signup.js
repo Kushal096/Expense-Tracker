@@ -1,59 +1,51 @@
-const API_BASE_URL = "http://127.0.0.1:8000";
+const createAccountBtn = document.getElementById("createAccountBtn");
+const backToSignin = document.getElementById("backToSignin");
+const fullNameInput = document.getElementById("fullName");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const confirmPasswordInput = document.getElementById("confirmPassword");
 
-const signupForm = document.getElementById("signup-form");
-const signupMessage = document.getElementById("signup-message");
-const signupButton = document.getElementById("signup-btn");
+const API_BASE_URL = "http://localhost:8000";
 
-function setMessage(message, type = "info") {
-    signupMessage.textContent = message;
-    signupMessage.className = `message ${type}`;
-}
+createAccountBtn.addEventListener("click", async (e) => {
+  e.preventDefault();
+  const full_name = fullNameInput.value;
+  const email = emailInput.value;
+  const password = passwordInput.value;
+  const confirmPassword = confirmPasswordInput.value;
 
-signupForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+  if (!full_name || !email || !password || !confirmPassword) {
+    alert("Please fill in all fields.");
+    return;
+  }
 
-    const username = document.getElementById("signup-username").value.trim();
-    const email = document.getElementById("signup-email").value.trim();
-    const password = document.getElementById("signup-password").value;
-    const confirmPassword = document.getElementById("signup-confirm-password").value;
+  if (password !== confirmPassword) {
+    alert("Passwords do not match.");
+    return;
+  }
 
-    if (!username || !email || !password || !confirmPassword) {
-        setMessage("Please fill all fields.", "error");
-        return;
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username: full_name, email, password }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Signup failed");
     }
 
-    if (password !== confirmPassword) {
-        setMessage("Passwords do not match.", "error");
-        return;
-    }
+    const data = await response.json();
+    alert("Account created successfully. Please sign in.");
+    window.location.href = "login.html";
+  } catch (error) {
+    alert(`Error: ${error.message}`);
+  }
+});
 
-    signupButton.disabled = true;
-    signupButton.textContent = "Creating...";
-    setMessage("", "info");
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/auth/signup`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ username, email, password }),
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.detail || "Signup failed");
-        }
-
-        setMessage("Account created successfully. Redirecting to login...", "success");
-        setTimeout(() => {
-            window.location.href = "login.html";
-        }, 1200);
-    } catch (error) {
-        setMessage(error.message || "Unable to signup right now.", "error");
-    } finally {
-        signupButton.disabled = false;
-        signupButton.textContent = "Create Account";
-    }
+backToSignin.addEventListener("click", () => {
+  window.location.href = "login.html";
 });
