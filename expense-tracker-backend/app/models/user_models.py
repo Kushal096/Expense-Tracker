@@ -19,3 +19,4 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     expenses = relationship("Expense", back_populates="user")
+    incomes = relationship("Income", back_populates="user")

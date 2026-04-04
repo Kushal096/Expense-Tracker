@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.schemas.income_schema import IncomeBase, IncomeResponse
+from app.schemas.income_schema import IncomeCreate, IncomeResponse
 from app.services.income_service import (
     create_income,
     get_incomes_by_user,
@@ -17,7 +17,6 @@ router = APIRouter(prefix="/incomes", tags=["incomes"])
     "/",
     response_model=list[IncomeResponse],
     summary="Get all incomes for current user",
-    description="Returns a list of all incomes for the authenticated user.",
 )
 
 def read_incomes(
@@ -31,10 +30,9 @@ def read_incomes(
     "/",
     response_model=IncomeResponse,
     summary="Create a new income",
-    description="Creates a new income record for the authenticated user.",
 )
 def create_new_income(
-    income: IncomeBase,
+    income: IncomeCreate,
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
@@ -46,11 +44,10 @@ def create_new_income(
     "/{income_id}",
     response_model=IncomeResponse,
     summary="Update an income",
-    description="Updates an existing income record by ID for the authenticated user.",
 )
 def update_existing_income(
     income_id: int,
-    income: IncomeBase,
+    income: IncomeCreate,
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
@@ -67,7 +64,6 @@ def update_existing_income(
 @router.delete(
     "/{income_id}",
     summary="Delete an income",
-    description="Deletes an existing income record by ID for the authenticated user.",
 )
 def delete_existing_income(
     income_id: int,
@@ -87,7 +83,6 @@ def delete_existing_income(
     "/{income_id}",
     response_model=IncomeResponse,
     summary="Get an income by ID",
-    description="Returns a single income record by ID for the authenticated user.",
 )
 def read_income_by_id(
     income_id: int,

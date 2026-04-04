@@ -1,13 +1,13 @@
-from sqlalchemy import Session
+from sqlalchemy.orm import Session
 from app.models.income_models import Income
-from app.schemas.income_schema import IncomeBase, IncomeResponse
+from app.schemas.income_schema import IncomeCreate, IncomeResponse
 
-def create_income(db: Session, income_data: IncomeBase, user_id: int) -> IncomeResponse:
+def create_income(db: Session, income_data: IncomeCreate, user_id: int) -> IncomeResponse:
     """Create a new income record for a user.
     
     Args:
         db: SQLAlchemy database session.
-        income_data: Income data payload from request (amount, source, date, category_id, description).
+        income_data: Income data payload from request (amount, source, date, category_id).
         user_id: ID of the user creating the income. Used for ownership and isolation.
     Returns:
         IncomeResponse: Created income object, including auto-generated ID and timestamps.
@@ -20,8 +20,8 @@ def create_income(db: Session, income_data: IncomeBase, user_id: int) -> IncomeR
     """
     income = Income(
         amount=income_data.amount,
+        source=income_data.source,
         date=income_data.date,
-        description=income_data.description,
         user_id=user_id,
         category_id=income_data.category_id
     )
@@ -66,13 +66,13 @@ def get_income_by_id(db: Session, income_id: int, user_id: int) -> IncomeRespons
     income = db.query(Income).filter(Income.id == income_id, Income.user_id == user_id).first()
     return IncomeResponse.model_validate(income) if income else None
 
-def update_income(db: Session, income_id: int, income_data: IncomeBase, user_id: int) -> IncomeResponse | None:
+def update_income(db: Session, income_id: int, income_data: IncomeCreate, user_id: int) -> IncomeResponse | None:
     """Update an existing income record for a user.
     
     Args:
         db: SQLAlchemy database session.
         income_id: ID of the income record to update.
-        income_data: Updated income data payload from request (amount, source, date, category_id, description).
+        income_data: Updated income data payload from request (amount, source, date, category_id).
         user_id: ID of the user who owns the income record. Used for ownership verification.
     Returns:
         IncomeResponse: The updated income record if update is successful.
@@ -86,8 +86,8 @@ def update_income(db: Session, income_id: int, income_data: IncomeBase, user_id:
     if not income:
         return None
     income.amount = income_data.amount
+    income.source = income_data.source
     income.date = income_data.date
-    income.description = income_data.description
     income.category_id = income_data.category_id
     db.commit()
     db.refresh(income)
