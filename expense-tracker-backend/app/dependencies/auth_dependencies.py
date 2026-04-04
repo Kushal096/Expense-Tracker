@@ -21,3 +21,13 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
     if not payload or payload.get("user_id") is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
     return payload
+
+def extract_user_id(current_user: dict) -> int:
+    """Extract user id from decoded JWT payload or raise 401."""
+    user_id = current_user.get("user_id")
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+        )
+    return int(user_id)

@@ -15,20 +15,12 @@ from app.services.expense_service import (
     delete_expense,
 )
 from app.db.database import get_db
-from app.dependencies.auth_dependencies import get_current_user
+from app.dependencies.auth_dependencies import get_current_user, extract_user_id
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
 
 
-def _extract_user_id(current_user: dict) -> int:
-    """Extract user id from decoded JWT payload or raise 401."""
-    user_id = current_user.get("user_id")
-    if user_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
-        )
-    return int(user_id)
+
 
 @router.get(
     "/",
@@ -41,7 +33,7 @@ def read_expenses(
     current_user: dict = Depends(get_current_user),
 ):
     """Fetch all expenses for the current user."""
-    return get_expenses_by_user(db, _extract_user_id(current_user))
+    return get_expenses_by_user(db, extract_user_id(current_user))
 
 
 @router.post(
@@ -56,7 +48,7 @@ def create_new_expense(
     current_user: dict = Depends(get_current_user),
 ):
     """Create a new expense and return the created entity."""
-    return create_expense(db, expense, _extract_user_id(current_user))
+    return create_expense(db, expense, extract_user_id(current_user))
 
 @router.patch(
     "/{expense_id}",
@@ -75,7 +67,7 @@ def update_existing_expense(
         db,
         expense_id,
         expense,
-        _extract_user_id(current_user),
+        extract_user_id(current_user),
     )
     if not updated_expense:
         raise HTTPException(
@@ -96,7 +88,7 @@ def delete_existing_expense(
     current_user: dict = Depends(get_current_user),
 ):
     """Delete an existing expense and return confirmation message."""
-    success = delete_expense(db, expense_id, _extract_user_id(current_user))
+    success = delete_expense(db, expense_id, extract_user_id(current_user))
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found"
@@ -116,7 +108,7 @@ def read_expense_by_id(
     current_user: dict = Depends(get_current_user),
 ):
     """Fetch a single expense by ID for the current user."""
-    expense = get_expense_by_id(db, expense_id, _extract_user_id(current_user))
+    expense = get_expense_by_id(db, expense_id, extract_user_id(current_user))
     if not expense:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found"
