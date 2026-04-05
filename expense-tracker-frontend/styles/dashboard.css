@@ -160,7 +160,7 @@ body::before {
 .card-item {
   flex: 1;
   border-right: 2px solid white;
-  padding-right: 34px;
+  padding:0px 30px;
   display: flex;
   flex-direction: column;
   gap: 8px;

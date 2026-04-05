@@ -7,6 +7,7 @@ class CategoryBase(BaseModel):
     """Payload used by create/update category endpoints."""
 
     name: str = Field(..., min_length=1, description="Category name", examples=["Food"])
+    type: str = Field(..., description="Category type", examples=["income", "expense"])
 
 
 class CategoryResponse(BaseModel):
@@ -14,6 +15,7 @@ class CategoryResponse(BaseModel):
 
     id: int
     name: str
+    type: str
 
     model_config = {
         "from_attributes": True,

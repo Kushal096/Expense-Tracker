@@ -42,7 +42,7 @@ def read_categories(db: Session = Depends(get_db)):
 )
 def create_new_category(category: CategoryBase, db: Session = Depends(get_db)):
     """Create a category and return the created entity."""
-    return create_category(db, category.name)
+    return create_category(db, category.name, category.type)
 
 
 @router.patch(
@@ -50,13 +50,13 @@ def create_new_category(category: CategoryBase, db: Session = Depends(get_db)):
     response_model=CategoryResponse,
     dependencies=[Depends(get_current_user)],
     summary="Update a category",
-    description="Updates the name of an existing category by ID.",
+    description="Updates the name and type of an existing category by ID.",
 )
 def update_existing_category(
     category_id: int, category: CategoryBase, db: Session = Depends(get_db)
 ):
     """Update an existing category and return the updated entity."""
-    updated_category = update_category(db, category_id, category.name)
+    updated_category = update_category(db, category_id, category.name, category.type)
     if not updated_category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Category not found"

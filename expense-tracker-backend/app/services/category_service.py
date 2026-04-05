@@ -22,7 +22,18 @@ from app.models.category_models import Category
 from app.schemas.category_schema import CategoryResponse
 
 
-DEFAULT_CATEGORIES = ["Food", "Transport", "Entertainment", "Utilities", "Health", "Other"]
+DEFAULT_CATEGORIES = [
+    {"name": "Food", "type": "expense"},
+    {"name": "Transport", "type": "expense"},
+    {"name": "Entertainment", "type": "expense"},
+    {"name": "Utilities", "type": "expense"},
+    {"name": "Health", "type": "expense"},
+    {"name": "Other", "type": "expense"},
+    {"name": "Salary", "type": "income"},
+    {"name": "Investment", "type": "income"},
+    {"name": "Gift", "type": "income"},
+    {"name": "Other", "type": "income"},
+]
 
 
 def get_all_categories(db: Session) -> list[CategoryResponse]:
@@ -49,12 +60,13 @@ def get_all_categories(db: Session) -> list[CategoryResponse]:
     return db.query(Category).all()
 
 
-def create_category(db: Session, name: str) -> CategoryResponse:
-    """Create a new category with the specified name.
+def create_category(db: Session, name: str, type: str) -> CategoryResponse:
+    """Create a new category with the specified name and type.
     
     Args:
         db: SQLAlchemy database session.
         name: Category name (e.g., "Food", "Transport"). Should be unique.
+        type: Category type ("income", "expense").
     
     Returns:
         CategoryResponse: Created category object with auto-generated ID.
@@ -63,7 +75,7 @@ def create_category(db: Session, name: str) -> CategoryResponse:
         SQLAlchemy IntegrityError if category name already exists.
     
     Note:
-        - Category names are unique across the database.
+        - Category names are unique across the database for a specific type.
         - The category is immediately committed and available to all users.
         - Typical use cases: Admin adds custom categories, or seeding defaults.
         - Created categories are shared by all users in the system.
@@ -72,41 +84,43 @@ def create_category(db: Session, name: str) -> CategoryResponse:
         - Enforcing unique names at database level prevents duplicates.
         - If creation fails with IntegrityError, catch it in the route layer.
     """
-    category = Category(name=name)
+    category = Category(name=name, type=type)
     db.add(category)
     db.commit()
     db.refresh(category)
     return CategoryResponse.model_validate(category)
 
 
-def update_category(db: Session, category_id: int, name: str) -> CategoryResponse | None:
-    """Update an existing category's name.
+def update_category(db: Session, category_id: int, name: str, type: str) -> CategoryResponse | None:
+    """Update an existing category's name and type.
     
     Args:
         db: SQLAlchemy database session.
         category_id: ID of the category to update.
         name: New category name. Should be unique.
+        type: New category type.
     
     Returns:
         CategoryResponse | None: Updated category object if found, None otherwise.
-    
+        
     Raises:
-        SQLAlchemy IntegrityError if new name already exists.
+        SQLAlchemy IntegrityError if new name/type combination already exists.
     
     Note:
-        - Update affects all expenses linked to this category across all users.
+        - Update affects all records linked to this category across all users.
         - Returns None if category_id does not exist.
         - The change is immediately committed and visible to all users.
         - Useful for renaming predefined or user-created categories.
     
     Caution:
-        - Changing a category name affects all expenses using that category.
-        - If update fails with IntegrityError (duplicate name), catch it in route layer.
+        - Changing a category affects all expenses/incomes using that category.
+        - If update fails with IntegrityError, catch it in route layer.
     """
     category = db.query(Category).filter(Category.id == category_id).first()
     if not category:
         return None
     category.name = name
+    category.type = type
     db.commit()
     db.refresh(category)
     return CategoryResponse.model_validate(category)
@@ -170,6 +184,6 @@ def seed_default_categories(db: Session) -> None:
     """
     existing_categories = db.query(Category).count()
     if existing_categories == 0:
-        for name in DEFAULT_CATEGORIES:
-            create_category(db, name)
+        for cat in DEFAULT_CATEGORIES:
+            create_category(db, cat["name"], cat["type"])
     db.commit()

@@ -12,13 +12,14 @@ const cancelEditIncomeBtn = document.getElementById("cancelEditIncomeBtn");
 const updateIncomeBtn = document.getElementById("updateIncomeBtn");
 
 let incomes = [];
+let categories = [];
 let editingIncomeId = null;
 
 // Open Create Modal
 addIncomeBtn.addEventListener("click", () => {
     document.getElementById("title").value = "";
     document.getElementById("amount").value = "";
-    document.getElementById("source").value = "";
+    document.getElementById("category").value = categories.length ? categories[0].id : "";
     document.getElementById("date").value = new Date().toISOString().split("T")[0];
     incomeModal.style.display = "flex";
 });
@@ -52,23 +53,61 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-        incomes = await apiCall('/incomes/');
-        renderIncomes();
+        [incomes, categories] = await Promise.all([
+            apiCall('/incomes/'),
+            apiCall('/categories/')
+        ]);
+        
+        populateCategorySelects();
+        renderIncomes(document.getElementById("filterCategory")?.value || "");
     } catch (error) {
         console.error("Error loading income data:", error);
     }
 });
 
-function renderIncomes() {
+function populateCategorySelects() {
+    // Only show categories that are explicitly marked as "income" type
+    const incomeCategories = categories.filter(c => c.type === 'income');
+
+    const categorySelects = [
+        document.getElementById("category"),
+        document.getElementById("editIncomeCategory")
+    ];
+    
+    categorySelects.forEach(select => {
+        if (select) {
+            select.innerHTML = incomeCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        }
+    });
+
+    const filterCategory = document.getElementById("filterCategory");
+    if (filterCategory) {
+        filterCategory.innerHTML = '<option value="">All Categories</option>' + 
+            incomeCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            
+        // Setup filter change event
+        filterCategory.addEventListener('change', (e) => {
+            renderIncomes(e.target.value);
+        });
+    }
+}
+
+function renderIncomes(filterCategoryId = "") {
     const tbody = document.getElementById("incomeTableBody") || document.querySelector(".data-table tbody");
     if (!tbody) return;
     
     tbody.innerHTML = "";
-    incomes.forEach(income => {
+    
+    const filteredIncomes = filterCategoryId 
+        ? incomes.filter(i => i.category_id == filterCategoryId)
+        : incomes;
+        
+    filteredIncomes.forEach(income => {
+        const category = categories.find(c => c.id === income.category_id);
         const tr = document.createElement("tr");
         tr.innerHTML = `
             <td>${income.title || income.source || 'Income'}</td>
-            <td>${income.source || 'General'}</td>
+            <td>${category ? category.name : 'Unknown'}</td>
             <td>$${income.amount.toFixed(2)}</td>
             <td>${new Date(income.date).toLocaleDateString()}</td>
             <td class="actions">
@@ -82,16 +121,17 @@ function renderIncomes() {
 
 async function createIncome(e) {
     e.preventDefault();
-    const source = document.getElementById("source").value || document.getElementById("title").value;
+    const source = document.getElementById("title").value;
     const amount = parseFloat(document.getElementById("amount").value);
+    const category_id = parseInt(document.getElementById("category").value);
     const date = document.getElementById("date").value;
 
     try {
-        const newIncome = await apiCall('/income/', 'POST', {
-            source, amount, date, description: ''
+        const newIncome = await apiCall('/incomes/', 'POST', {
+            source, amount, date, category_id,
         });
         incomes.push(newIncome);
-        renderIncomes();
+        renderIncomes(document.getElementById("filterCategory")?.value || "");
         closeCreateModal();
     } catch (error) {
         alert("Failed to add income: " + error.message);
@@ -113,6 +153,7 @@ function openEditModal(id) {
     if (sourceEl) sourceEl.value = income.source || '';
     
     document.getElementById("editIncomeAmount").value = income.amount;
+    document.getElementById("editIncomeCategory").value = income.category_id;
     document.getElementById("editIncomeDate").value = income.date.split("T")[0];
     
     editIncomeModal.style.display = "flex";
@@ -125,14 +166,15 @@ async function executeEditIncome(e) {
     const sourceEl = document.getElementById("editIncomeSource") || document.getElementById("editIncomeTitle");
     const source = sourceEl ? sourceEl.value : "";
     const amount = parseFloat(document.getElementById("editIncomeAmount").value);
+    const category_id = parseInt(document.getElementById("editIncomeCategory").value);
     const date = document.getElementById("editIncomeDate").value;
 
     try {
-        const updatedIncome = await apiCall(`/income/${editingIncomeId}`, 'PATCH', {
-            source, amount, date
+        const updatedIncome = await apiCall(`/incomes/${editingIncomeId}`, 'PATCH', {
+            source, amount, date, category_id
         });
         incomes = incomes.map(i => i.id === editingIncomeId ? updatedIncome : i);
-        renderIncomes();
+        renderIncomes(document.getElementById("filterCategory")?.value || "");
         closeEditModal();
     } catch (error) {
         alert("Failed to update income: " + error.message);
@@ -144,9 +186,9 @@ async function deleteIncome(id) {
     if (!confirm("Are you sure you want to delete this income?")) return;
 
     try {
-        await apiCall(`/income/${id}`, 'DELETE');
+        await apiCall(`/incomes/${id}`, 'DELETE');
         incomes = incomes.filter(i => i.id !== id);
-        renderIncomes();
+        renderIncomes(document.getElementById("filterCategory")?.value || "");
     } catch (error) {
         alert("Failed to delete income: " + error.message);
     }

@@ -3,8 +3,6 @@ const createAccountLink = document.getElementById("createAccountLink");
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 
-const API_BASE_URL = "http://localhost:8000";
-
 signinBtn.addEventListener("click", async (e) => {
   e.preventDefault();
   const email = emailInput.value;

@@ -61,13 +61,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         ]);
         
         populateCategorySelects();
-        renderExpenses();
+        renderExpenses(document.getElementById("filterCategory")?.value || "");
     } catch (error) {
         console.error("Error loading data:", error);
     }
 });
 
 function populateCategorySelects() {
+    // Only show categories that are explicitly marked as "expense" type
+    const expenseCategories = categories.filter(c => c.type === 'expense');
+
     const categorySelects = [
         document.getElementById("category"),
         document.getElementById("editExpenseCategory")
@@ -75,21 +78,37 @@ function populateCategorySelects() {
     
     categorySelects.forEach(select => {
         if (select) {
-            select.innerHTML = categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            select.innerHTML = expenseCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
         }
     });
+
+    const filterCategory = document.getElementById("filterCategory");
+    if (filterCategory) {
+        filterCategory.innerHTML = '<option value="">All Categories</option>' + 
+            expenseCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            
+        // Setup filter change event
+        filterCategory.addEventListener('change', (e) => {
+            renderExpenses(e.target.value);
+        });
+    }
 }
 
-function renderExpenses() {
+function renderExpenses(filterCategoryId = "") {
     const tbody = document.getElementById("expenseTableBody") || document.querySelector(".data-table tbody");
     if (!tbody) return;
     
     tbody.innerHTML = "";
-    expenses.forEach(expense => {
+    
+    const filteredExpenses = filterCategoryId 
+        ? expenses.filter(e => e.category_id == filterCategoryId)
+        : expenses;
+        
+    filteredExpenses.forEach(expense => {
         const category = categories.find(c => c.id === expense.category_id);
         const tr = document.createElement("tr");
         tr.innerHTML = `
-            <td>${expense.title || 'Untitled'}</td>
+            <td>${expense.description || 'Untitled'}</td>
             <td>${category ? category.name : 'Unknown'}</td>
             <td>$${expense.amount.toFixed(2)}</td>
             <td>${new Date(expense.date).toLocaleDateString()}</td>
@@ -104,17 +123,17 @@ function renderExpenses() {
 
 async function createExpense(e) {
     e.preventDefault();
-    const title = document.getElementById("title").value;
+    const description = document.getElementById("title").value;
     const amount = parseFloat(document.getElementById("amount").value);
     const category_id = parseInt(document.getElementById("category").value);
     const date = document.getElementById("date").value;
-
+    console.log(description)
     try {
         const newExpense = await apiCall('/expenses/', 'POST', {
-            title, amount, category_id, date, description: ''
+            amount, category_id, date, description
         });
         expenses.push(newExpense);
-        renderExpenses();
+        renderExpenses(document.getElementById("filterCategory")?.value || "");
         closeCreateModal();
     } catch (error) {
         alert("Failed to create expense: " + error.message);
@@ -127,7 +146,7 @@ function openEditModal(id) {
     if (!expense) return;
     
     editingExpenseId = id;
-    document.getElementById("editExpenseTitle").value = expense.title || '';
+    document.getElementById("editExpenseTitle").value = expense.description;
     document.getElementById("editExpenseAmount").value = expense.amount;
     document.getElementById("editExpenseCategory").value = expense.category_id;
     document.getElementById("editExpenseDate").value = expense.date.split("T")[0];
@@ -139,17 +158,17 @@ async function executeEditExpense(e) {
     e.preventDefault();
     if (!editingExpenseId) return;
 
-    const title = document.getElementById("editExpenseTitle").value;
+    const description = document.getElementById("editExpenseTitle").value;
     const amount = parseFloat(document.getElementById("editExpenseAmount").value);
     const category_id = parseInt(document.getElementById("editExpenseCategory").value);
     const date = document.getElementById("editExpenseDate").value;
 
     try {
         const updatedExpense = await apiCall(`/expenses/${editingExpenseId}`, 'PATCH', {
-            title, amount, category_id, date
+            description, amount, category_id, date
         });
         expenses = expenses.map(e => e.id === editingExpenseId ? updatedExpense : e);
-        renderExpenses();
+        renderExpenses(document.getElementById("filterCategory")?.value || "");
         closeEditModal();
     } catch (error) {
         alert("Failed to update expense: " + error.message);
@@ -163,7 +182,7 @@ async function deleteExpense(id) {
     try {
         await apiCall(`/expenses/${id}`, 'DELETE');
         expenses = expenses.filter(e => e.id !== id);
-        renderExpenses();
+        renderExpenses(document.getElementById("filterCategory")?.value || "");
     } catch (error) {
         alert("Failed to delete expense: " + error.message);
     }

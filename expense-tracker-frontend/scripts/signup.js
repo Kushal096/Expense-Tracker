@@ -5,7 +5,6 @@ const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const confirmPasswordInput = document.getElementById("confirmPassword");
 
-const API_BASE_URL = "http://localhost:8000";
 
 createAccountBtn.addEventListener("click", async (e) => {
   e.preventDefault();
