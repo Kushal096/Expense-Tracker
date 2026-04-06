@@ -104,7 +104,10 @@ function renderExpenses(filterCategoryId = "") {
         ? expenses.filter(e => e.category_id == filterCategoryId)
         : expenses;
         
+    let totalAmount = 0;
+    
     filteredExpenses.forEach(expense => {
+        totalAmount += expense.amount;
         const category = categories.find(c => c.id === expense.category_id);
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -119,6 +122,11 @@ function renderExpenses(filterCategoryId = "") {
         `;
         tbody.appendChild(tr);
     });
+
+    const countEl = document.getElementById("totalExpenseCount");
+    const amountEl = document.getElementById("totalExpenseAmount");
+    if (countEl) countEl.textContent = `Total Expenses (${filteredExpenses.length})`;
+    if (amountEl) amountEl.textContent = `$${totalAmount.toFixed(2)}`;
 }
 
 async function createExpense(e) {

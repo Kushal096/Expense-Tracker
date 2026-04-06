@@ -102,7 +102,10 @@ function renderIncomes(filterCategoryId = "") {
         ? incomes.filter(i => i.category_id == filterCategoryId)
         : incomes;
         
+    let totalAmount = 0;
+
     filteredIncomes.forEach(income => {
+        totalAmount += income.amount;
         const category = categories.find(c => c.id === income.category_id);
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -117,6 +120,11 @@ function renderIncomes(filterCategoryId = "") {
         `;
         tbody.appendChild(tr);
     });
+
+    const countEl = document.getElementById("totalIncomeCount");
+    const amountEl = document.getElementById("totalIncomeAmount");
+    if (countEl) countEl.textContent = `Total Income (${filteredIncomes.length})`;
+    if (amountEl) amountEl.textContent = `$${totalAmount.toFixed(2)}`;
 }
 
 async function createIncome(e) {
