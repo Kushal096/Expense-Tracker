@@ -127,7 +127,6 @@ body::before {
   overflow: hidden;
 }
 
-/* Subtle line background in the overview container */
 .financial-overview-container::after {
   content: '';
   position: absolute;

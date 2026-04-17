@@ -8,40 +8,50 @@ const confirmPasswordInput = document.getElementById("confirmPassword");
 
 createAccountBtn.addEventListener("click", async (e) => {
   e.preventDefault();
+  
+  if (!createAccountBtn || createAccountBtn.disabled) {
+    return;
+  }
+
   const full_name = fullNameInput.value;
   const email = emailInput.value;
   const password = passwordInput.value;
   const confirmPassword = confirmPasswordInput.value;
 
   if (!full_name || !email || !password || !confirmPassword) {
-    alert("Please fill in all fields.");
+    showNotification("Please fill in all fields.", 'error');
     return;
   }
 
   if (password !== confirmPassword) {
-    alert("Passwords do not match.");
+    showNotification("Passwords do not match.", 'error');
     return;
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/signup`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username: full_name, email, password }),
+    await loadingManager.executeWithLoading(createAccountBtn, async () => {
+      const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username: full_name, email, password }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Signup failed");
+      }
+
+      const data = await response.json();
+      showNotification("Account created successfully. Please sign in.", 'success');
+      setTimeout(() => {
+        window.location.href = "login.html";
+      }, 1000);
     });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || "Signup failed");
-    }
-
-    const data = await response.json();
-    alert("Account created successfully. Please sign in.");
-    window.location.href = "login.html";
   } catch (error) {
-    alert(`Error: ${error.message}`);
+    showNotification(`Error: ${error.message}`, 'error');
+    console.error("Signup error:", error);
   }
 });
 

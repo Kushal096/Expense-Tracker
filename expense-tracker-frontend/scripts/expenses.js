@@ -1,13 +1,9 @@
-
-
-// Create Modal Elements
 const addExpenseBtn = document.getElementById("addExpenseBtn");
 const expenseModal = document.getElementById("expenseModal");
 const closeModalBtn = document.getElementById("closeModalBtn");
 const cancelExpenseBtn = document.getElementById("cancelExpenseBtn");
 const saveExpenseBtn = document.getElementById("saveExpenseBtn");
 
-// Edit Modal Elements
 const editExpenseModal = document.getElementById("editExpenseModal");
 const closeEditModalBtn = document.getElementById("closeEditModalBtn");
 const cancelEditExpenseBtn = document.getElementById("cancelEditExpenseBtn");
@@ -17,7 +13,6 @@ let expenses = [];
 let categories = [];
 let editingExpenseId = null;
 
-// Open Create Modal
 addExpenseBtn.addEventListener("click", () => {
     document.getElementById("title").value = "";
     document.getElementById("amount").value = "";
@@ -26,14 +21,12 @@ addExpenseBtn.addEventListener("click", () => {
     expenseModal.style.display = "flex";
 });
 
-// Close Create Modal
 const closeCreateModal = () => {
     expenseModal.style.display = "none";
 };
 closeModalBtn.addEventListener("click", closeCreateModal);
 cancelExpenseBtn.addEventListener("click", closeCreateModal);
 
-// Close Edit Modal
 const closeEditModal = () => {
     editExpenseModal.style.display = "none";
     editingExpenseId = null;
@@ -41,13 +34,11 @@ const closeEditModal = () => {
 closeEditModalBtn.addEventListener("click", closeEditModal);
 cancelEditExpenseBtn.addEventListener("click", closeEditModal);
 
-// Close when clicking outside of the modal content
 window.addEventListener("click", (e) => {
     if (e.target === expenseModal) closeCreateModal();
     if (e.target === editExpenseModal) closeEditModal();
 });
 
-// Fetch and render data
 document.addEventListener("DOMContentLoaded", async () => {
     if (!localStorage.getItem('access_token')) {
         window.location.href = 'login.html';
@@ -68,7 +59,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 function populateCategorySelects() {
-    // Only show categories that are explicitly marked as "expense" type
     const expenseCategories = categories.filter(c => c.type === 'expense');
 
     const categorySelects = [
@@ -87,7 +77,6 @@ function populateCategorySelects() {
         filterCategory.innerHTML = '<option value="">All Categories</option>' + 
             expenseCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
             
-        // Setup filter change event
         filterCategory.addEventListener('change', (e) => {
             renderExpenses(e.target.value);
         });
@@ -131,20 +120,29 @@ function renderExpenses(filterCategoryId = "") {
 
 async function createExpense(e) {
     e.preventDefault();
+    
+    if (!saveExpenseBtn || saveExpenseBtn.disabled) {
+        return;
+    }
+
     const description = document.getElementById("title").value;
     const amount = parseFloat(document.getElementById("amount").value);
     const category_id = parseInt(document.getElementById("category").value);
     const date = document.getElementById("date").value;
-    console.log(description)
+
     try {
-        const newExpense = await apiCall('/expenses/', 'POST', {
-            amount, category_id, date, description
+        await loadingManager.executeWithLoading(saveExpenseBtn, async () => {
+            const newExpense = await apiCall('/expenses/', 'POST', {
+                amount, category_id, date, description
+            });
+            expenses.push(newExpense);
+            renderExpenses(document.getElementById("filterCategory")?.value || "");
+            closeCreateModal();
+            showNotification('Expense created successfully!', 'success');
         });
-        expenses.push(newExpense);
-        renderExpenses(document.getElementById("filterCategory")?.value || "");
-        closeCreateModal();
     } catch (error) {
-        alert("Failed to create expense: " + error.message);
+        showNotification("Failed to create expense: " + error.message, 'error');
+        console.error("Error creating expense:", error);
     }
 }
 if (saveExpenseBtn) saveExpenseBtn.addEventListener("click", createExpense);
@@ -164,7 +162,12 @@ function openEditModal(id) {
 
 async function executeEditExpense(e) {
     e.preventDefault();
+    
     if (!editingExpenseId) return;
+    
+    if (!updateExpenseBtn || updateExpenseBtn.disabled) {
+        return;
+    }
 
     const description = document.getElementById("editExpenseTitle").value;
     const amount = parseFloat(document.getElementById("editExpenseAmount").value);
@@ -172,14 +175,18 @@ async function executeEditExpense(e) {
     const date = document.getElementById("editExpenseDate").value;
 
     try {
-        const updatedExpense = await apiCall(`/expenses/${editingExpenseId}`, 'PATCH', {
-            description, amount, category_id, date
+        await loadingManager.executeWithLoading(updateExpenseBtn, async () => {
+            const updatedExpense = await apiCall(`/expenses/${editingExpenseId}`, 'PATCH', {
+                description, amount, category_id, date
+            });
+            expenses = expenses.map(e => e.id === editingExpenseId ? updatedExpense : e);
+            renderExpenses(document.getElementById("filterCategory")?.value || "");
+            closeEditModal();
+            showNotification('Expense updated successfully!', 'success');
         });
-        expenses = expenses.map(e => e.id === editingExpenseId ? updatedExpense : e);
-        renderExpenses(document.getElementById("filterCategory")?.value || "");
-        closeEditModal();
     } catch (error) {
-        alert("Failed to update expense: " + error.message);
+        showNotification("Failed to update expense: " + error.message, 'error');
+        console.error("Error updating expense:", error);
     }
 }
 if (updateExpenseBtn) updateExpenseBtn.addEventListener("click", executeEditExpense);
@@ -187,11 +194,24 @@ if (updateExpenseBtn) updateExpenseBtn.addEventListener("click", executeEditExpe
 async function deleteExpense(id) {
     if (!confirm("Are you sure you want to delete this expense?")) return;
 
+    const deleteButton = event.target.closest('svg');
+    if (deleteButton) {
+        deleteButton.style.pointerEvents = 'none';
+        deleteButton.style.opacity = '0.5';
+    }
+
     try {
         await apiCall(`/expenses/${id}`, 'DELETE');
         expenses = expenses.filter(e => e.id !== id);
         renderExpenses(document.getElementById("filterCategory")?.value || "");
+        showNotification('Expense deleted successfully!', 'success');
     } catch (error) {
-        alert("Failed to delete expense: " + error.message);
+        showNotification("Failed to delete expense: " + error.message, 'error');
+        console.error("Error deleting expense:", error);
+        
+        if (deleteButton) {
+            deleteButton.style.pointerEvents = 'auto';
+            deleteButton.style.opacity = '1';
+        }
     }
 }
