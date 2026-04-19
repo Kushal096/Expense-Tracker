@@ -15,10 +15,10 @@
         <h1>BEGIN</h1>
         <div class="divider"></div>
       </div>
-      <input id="fullName" type="text" placeholder="Full name">
-      <input id="email" type="text" placeholder="Email address">
-      <input id="password" type="password" placeholder="Password">
-      <input id="confirmPassword" type="password" placeholder="Confirm password">
+      <input id="fullName" type="text" placeholder="Full name" required>
+      <input id="email" type="email" placeholder="Email address" required>
+      <input id="password" type="password" placeholder="Password" required minlength="6">
+      <input id="confirmPassword" type="password" placeholder="Confirm password" required>
       <button id="createAccountBtn">CREATE ACCOUNT &rarr;</button>
       <p id="backToSignin">Already have an account? Sign In</p>
     </div>
