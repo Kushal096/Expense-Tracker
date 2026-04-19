@@ -1,11 +1,9 @@
-// Create Modal Elements
 const addIncomeBtn = document.getElementById("addIncomeBtn");
 const incomeModal = document.getElementById("incomeModal");
 const closeModalBtn = document.getElementById("closeModalBtn");
 const cancelIncomeBtn = document.getElementById("cancelIncomeBtn");
 const saveIncomeBtn = document.getElementById("saveIncomeBtn");
 
-// Edit Modal Elements
 const editIncomeModal = document.getElementById("editIncomeModal");
 const closeEditModalBtn = document.getElementById("closeEditModalBtn");
 const cancelEditIncomeBtn = document.getElementById("cancelEditIncomeBtn");
@@ -15,7 +13,6 @@ let incomes = [];
 let categories = [];
 let editingIncomeId = null;
 
-// Open Create Modal
 addIncomeBtn.addEventListener("click", () => {
     document.getElementById("title").value = "";
     document.getElementById("amount").value = "";
@@ -24,14 +21,12 @@ addIncomeBtn.addEventListener("click", () => {
     incomeModal.style.display = "flex";
 });
 
-// Close Create Modal
 const closeCreateModal = () => {
     incomeModal.style.display = "none";
 };
 closeModalBtn.addEventListener("click", closeCreateModal);
 cancelIncomeBtn.addEventListener("click", closeCreateModal);
 
-// Open Edit Modal
 const closeEditModal = () => {
     editIncomeModal.style.display = "none";
     editingIncomeId = null;
@@ -39,13 +34,11 @@ const closeEditModal = () => {
 closeEditModalBtn.addEventListener("click", closeEditModal);
 cancelEditIncomeBtn.addEventListener("click", closeEditModal);
 
-// Close when clicking outside of the modal content
 window.addEventListener("click", (e) => {
     if (e.target === incomeModal) closeCreateModal();
     if (e.target === editIncomeModal) closeEditModal();
 });
 
-// Fetch and render data
 document.addEventListener("DOMContentLoaded", async () => {
     if (!localStorage.getItem('access_token')) {
         window.location.href = 'login.html';
@@ -66,7 +59,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 function populateCategorySelects() {
-    // Only show categories that are explicitly marked as "income" type
     const incomeCategories = categories.filter(c => c.type === 'income');
 
     const categorySelects = [
@@ -85,7 +77,6 @@ function populateCategorySelects() {
         filterCategory.innerHTML = '<option value="">All Categories</option>' + 
             incomeCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
             
-        // Setup filter change event
         filterCategory.addEventListener('change', (e) => {
             renderIncomes(e.target.value);
         });
@@ -129,20 +120,29 @@ function renderIncomes(filterCategoryId = "") {
 
 async function createIncome(e) {
     e.preventDefault();
+    
+    if (!saveIncomeBtn || saveIncomeBtn.disabled) {
+        return;
+    }
+
     const source = document.getElementById("title").value;
     const amount = parseFloat(document.getElementById("amount").value);
     const category_id = parseInt(document.getElementById("category").value);
     const date = document.getElementById("date").value;
 
     try {
-        const newIncome = await apiCall('/incomes/', 'POST', {
-            source, amount, date, category_id,
+        await loadingManager.executeWithLoading(saveIncomeBtn, async () => {
+            const newIncome = await apiCall('/incomes/', 'POST', {
+                source, amount, date, category_id,
+            });
+            incomes.push(newIncome);
+            renderIncomes(document.getElementById("filterCategory")?.value || "");
+            closeCreateModal();
+            showNotification('Income created successfully!', 'success');
         });
-        incomes.push(newIncome);
-        renderIncomes(document.getElementById("filterCategory")?.value || "");
-        closeCreateModal();
     } catch (error) {
-        alert("Failed to add income: " + error.message);
+        showNotification("Failed to add income: " + error.message, 'error');
+        console.error("Error creating income:", error);
     }
 }
 if (saveIncomeBtn) saveIncomeBtn.addEventListener("click", createIncome);
@@ -153,7 +153,6 @@ function openEditModal(id) {
     
     editingIncomeId = id;
     
-    // Assume HTML uses editIncomeTitle / editIncomeAmount / editIncomeSource / editIncomeDate
     const titleEl = document.getElementById("editIncomeTitle");
     if (titleEl) titleEl.value = income.source || '';
     
@@ -169,7 +168,12 @@ function openEditModal(id) {
 
 async function executeEditIncome(e) {
     e.preventDefault();
+    
     if (!editingIncomeId) return;
+    
+    if (!updateIncomeBtn || updateIncomeBtn.disabled) {
+        return;
+    }
 
     const sourceEl = document.getElementById("editIncomeSource") || document.getElementById("editIncomeTitle");
     const source = sourceEl ? sourceEl.value : "";
@@ -178,14 +182,18 @@ async function executeEditIncome(e) {
     const date = document.getElementById("editIncomeDate").value;
 
     try {
-        const updatedIncome = await apiCall(`/incomes/${editingIncomeId}`, 'PATCH', {
-            source, amount, date, category_id
+        await loadingManager.executeWithLoading(updateIncomeBtn, async () => {
+            const updatedIncome = await apiCall(`/incomes/${editingIncomeId}`, 'PATCH', {
+                source, amount, date, category_id
+            });
+            incomes = incomes.map(i => i.id === editingIncomeId ? updatedIncome : i);
+            renderIncomes(document.getElementById("filterCategory")?.value || "");
+            closeEditModal();
+            showNotification('Income updated successfully!', 'success');
         });
-        incomes = incomes.map(i => i.id === editingIncomeId ? updatedIncome : i);
-        renderIncomes(document.getElementById("filterCategory")?.value || "");
-        closeEditModal();
     } catch (error) {
-        alert("Failed to update income: " + error.message);
+        showNotification("Failed to update income: " + error.message, 'error');
+        console.error("Error updating income:", error);
     }
 }
 if (updateIncomeBtn) updateIncomeBtn.addEventListener("click", executeEditIncome);
@@ -193,11 +201,24 @@ if (updateIncomeBtn) updateIncomeBtn.addEventListener("click", executeEditIncome
 async function deleteIncome(id) {
     if (!confirm("Are you sure you want to delete this income?")) return;
 
+    const deleteButton = event.target.closest('svg');
+    if (deleteButton) {
+        deleteButton.style.pointerEvents = 'none';
+        deleteButton.style.opacity = '0.5';
+    }
+
     try {
         await apiCall(`/incomes/${id}`, 'DELETE');
         incomes = incomes.filter(i => i.id !== id);
         renderIncomes(document.getElementById("filterCategory")?.value || "");
+        showNotification('Income deleted successfully!', 'success');
     } catch (error) {
-        alert("Failed to delete income: " + error.message);
+        showNotification("Failed to delete income: " + error.message, 'error');
+        console.error("Error deleting income:", error);
+        
+        if (deleteButton) {
+            deleteButton.style.pointerEvents = 'auto';
+            deleteButton.style.opacity = '1';
+        }
     }
 }

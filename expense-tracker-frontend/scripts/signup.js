@@ -15,7 +15,7 @@ createAccountBtn.addEventListener("click", async (e) => {
 
   //  1. Empty fields check
   if (!full_name || !email || !password || !confirmPassword) {
-    alert("Please fill in all fields.");
+    showNotification("Please fill in all fields.", 'error');
     return;
   }
 
@@ -41,7 +41,7 @@ createAccountBtn.addEventListener("click", async (e) => {
 
   //  5. Confirm password match
   if (password !== confirmPassword) {
-    alert("Passwords do not match.");
+    showNotification("Passwords do not match.", 'error');
     return;
   }
 
@@ -70,7 +70,8 @@ createAccountBtn.addEventListener("click", async (e) => {
     window.location.href = "login.html";
 
   } catch (error) {
-    alert(`Error: ${error.message}`);
+    showNotification(`Error: ${error.message}`, 'error');
+    console.error("Signup error:", error);
   }
 });
 

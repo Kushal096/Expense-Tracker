@@ -319,9 +319,7 @@ td:nth-child(4) {
 }
 
 .actions {
-  display: flex;
-  gap: 16px;
-  align-items: center;
+  white-space: nowrap;
 }
 
 .actions svg {
@@ -329,13 +327,17 @@ td:nth-child(4) {
   height: 18px;
   cursor: pointer;
   opacity: 0.8;
+  vertical-align: middle;
+}
+
+.actions svg + svg {
+  margin-left: 16px;
 }
 
 .actions svg:hover {
   opacity: 1;
 }
 
-/* Modal Styles */
 .modal-overlay {
   position: fixed;
   top: 0;
