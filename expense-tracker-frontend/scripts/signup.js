@@ -5,6 +5,10 @@ const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const confirmPasswordInput = document.getElementById("confirmPassword");
 
+document.addEventListener("DOMContentLoaded", () => {
+  redirectIfAuthenticated();
+});
+
 
 createAccountBtn.addEventListener("click", async (e) => {
   e.preventDefault();

@@ -9,6 +9,10 @@ function showSignin() {
 }
 
 function goApp() {
+  if (!requireAuth()) {
+    return;
+  }
+
   document.getElementById("authPage").style.display = "none";
 }
 
@@ -23,3 +27,12 @@ function showPage(page) {
 function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (!requireAuth()) {
+    return;
+  }
+
+  goApp();
+  showPage("dashboard");
+});
