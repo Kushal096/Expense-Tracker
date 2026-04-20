@@ -17,7 +17,7 @@ createAccountBtn.addEventListener("click", async (e) => {
   const email = emailInput.value;
   const password = passwordInput.value;
   const confirmPassword = confirmPasswordInput.value;
-
+ 
   if (!full_name || !email || !password || !confirmPassword) {
     showNotification("Please fill in all fields.", 'error');
     return;
