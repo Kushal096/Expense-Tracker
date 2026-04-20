@@ -3,6 +3,10 @@ const createAccountLink = document.getElementById("createAccountLink");
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 
+document.addEventListener("DOMContentLoaded", () => {
+  redirectIfAuthenticated();
+});
+
 signinBtn.addEventListener("click", async (e) => {
   e.preventDefault();
   
@@ -34,7 +38,7 @@ signinBtn.addEventListener("click", async (e) => {
       }
 
       const data = await response.json();
-      localStorage.setItem("access_token", data.access_token);
+      setAuthToken(data.access_token);
       showNotification('Login successful!', 'success');
       setTimeout(() => {
         window.location.href = "dashboard.html";

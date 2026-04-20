@@ -4,12 +4,36 @@ function getAuthToken() {
     return localStorage.getItem('access_token');
 }
 
+function isAuthenticated() {
+    return Boolean(getAuthToken());
+}
+
 function setAuthToken(token) {
     localStorage.setItem('access_token', token);
 }
 
 function removeAuthToken() {
     localStorage.removeItem('access_token');
+}
+
+function redirectToLogin() {
+    window.location.href = 'login.html';
+}
+
+function requireAuth() {
+    if (!isAuthenticated()) {
+        redirectToLogin();
+        return false;
+    }
+    return true;
+}
+
+function redirectIfAuthenticated() {
+    if (isAuthenticated()) {
+        window.location.href = 'dashboard.html';
+        return true;
+    }
+    return false;
 }
 
 async function apiCall(endpoint, method = 'GET', body = null) {
@@ -35,7 +59,7 @@ async function apiCall(endpoint, method = 'GET', body = null) {
     
     if (response.status === 401) {
         removeAuthToken();
-        window.location.href = 'login.html';
+        redirectToLogin();
         throw new Error('Unauthorized');
     }
 
@@ -59,7 +83,7 @@ function setupLogout() {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             removeAuthToken();
-            window.location.href = 'login.html';
+            redirectToLogin();
         });
     });
 }

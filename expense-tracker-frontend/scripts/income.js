@@ -40,8 +40,7 @@ window.addEventListener("click", (e) => {
 });
 
 document.addEventListener("DOMContentLoaded", async () => {
-    if (!localStorage.getItem('access_token')) {
-        window.location.href = 'login.html';
+    if (!requireAuth()) {
         return;
     }
 
