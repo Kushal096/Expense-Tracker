@@ -11,6 +11,7 @@ from app.routes.auth_routes import router as auth_router
 from app.routes.category_routes import router as category_router
 from app.routes.expense_routes import router as expense_router
 from app.routes.income_routes import router as income_router
+from app.routes.dashboard import router as dashboard_router
 from app.services.category_service import seed_default_categories
 from sqlalchemy.orm import Session
 
@@ -22,7 +23,10 @@ app = FastAPI(
 
 app.add_middleware(
 	CORSMiddleware,
-	allow_origins=["*"],
+	allow_origins=[
+		"http://127.0.0.1:5501",
+		"http://localhost:5501"
+	],
 	allow_credentials=True,
 	allow_methods=["*"],
 	allow_headers=["*"],
@@ -35,6 +39,7 @@ app.include_router(auth_router)
 app.include_router(category_router)
 app.include_router(expense_router)
 app.include_router(income_router)
+app.include_router(dashboard_router)
 
 with Session(bind=engine) as db:
 	seed_default_categories(db)

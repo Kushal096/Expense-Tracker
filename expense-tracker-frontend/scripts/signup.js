@@ -18,39 +18,33 @@ createAccountBtn.addEventListener("click", async (e) => {
   const password = passwordInput.value;
   const confirmPassword = confirmPasswordInput.value;
 
-  //  1. Empty fields check
   if (!full_name || !email || !password || !confirmPassword) {
     showNotification("Please fill in all fields.", 'error');
     return;
   }
 
-  //  2. Email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    alert("Enter a valid email address.");
+    showNotification("Enter a valid email address.", 'error');
     return;
   }
 
-  // 3. Password length validation
   if (password.length < 6) {
-    alert("Password must be at least 6 characters long.");
+    showNotification("Password must be at least 6 characters long.", 'error');
     return;
   }
 
-  //  4. Strong password (letter + number)
   const strongPassword = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
   if (!strongPassword.test(password)) {
-    alert("Password must contain at least one letter and one number.");
+    showNotification("Password must contain at least one letter and one number.", 'error');
     return;
   }
 
-  //  5. Confirm password match
   if (password !== confirmPassword) {
     showNotification("Passwords do not match.", 'error');
     return;
   }
 
-  // 6. API call
   try {
     const response = await fetch(`${API_BASE_URL}/auth/signup`, {
       method: "POST",
@@ -71,7 +65,7 @@ createAccountBtn.addEventListener("click", async (e) => {
 
     await response.json();
 
-    alert("Account created successfully. Please sign in.");
+    showNotification("Account created successfully. Please sign in.", 'success');
     window.location.href = "login.html";
 
   } catch (error) {

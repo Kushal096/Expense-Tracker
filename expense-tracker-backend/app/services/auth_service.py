@@ -39,7 +39,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 3600)
 pwd_context = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated="auto")
 
 
-# Password hashing
 def hash_password(password: str) -> str:
     """Hash plaintext password using bcrypt-sha256.
     
@@ -76,11 +75,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
         return pwd_context.verify(plain_password, hashed_password)
     except ValueError:
-        # Hash is invalid or corrupted
         return False
 
 
-# User creation
 def create_user(db: Session, user: UserCreate) -> UserResponse:
     """Create and persist a new user record in the database.
     
@@ -108,7 +105,6 @@ def create_user(db: Session, user: UserCreate) -> UserResponse:
     return UserResponse.model_validate(db_user)
 
 
-# Get user
 def get_user_by_email(db: Session, email: str) -> User | None:
     """Retrieve user record by email address.
     
@@ -128,7 +124,6 @@ def get_user_by_email(db: Session, email: str) -> User | None:
     return db.query(User).filter(User.email == email).first()
 
 
-# JWT token creation
 def create_access_token(data: dict) -> str:
     """Create a JWT access token with expiration.
     
@@ -149,7 +144,6 @@ def create_access_token(data: dict) -> str:
     
     Example:
         token = create_access_token({"user_id": 42})
-        # Token can be verified with: verify_token(token)
     """
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -184,5 +178,4 @@ def verify_token(token: str) -> dict | None:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
     except JWTError:
-        # Token is invalid, expired, or tampered
         return None

@@ -4,6 +4,7 @@
   <title>Dashboard - Expense App</title>
   <link rel="stylesheet" href="styles/dashboard.css">
   <link rel="stylesheet" href="styles/loading.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js" defer></script>
   <script src="scripts/api.js" defer></script>
   <script src="scripts/loading.js" defer></script>
   <script src="scripts/dashboard.js" defer></script>
@@ -11,7 +12,7 @@
 <body>
   <div class="sidebar">
     <div class="logo">
-      <h1>EXPENSE</h1>
+      <h1>DASHBOARD</h1>
     </div>
     <div class="nav" style="flex: 1;">
       <a href="dashboard.html" class="active">Dashboard</a>
@@ -33,22 +34,33 @@
         <div class="card-item">
           <small>TOTAL BALANCE</small>
           <h2>$0.00</h2>
-          <span class="trend">0.0%</span>
         </div>
         <div class="card-item">
           <small>TOTAL EXPENSE</small>
           <h2>$0.00</h2>
-          <span class="trend">0.0%</span>
         </div>
         <div class="card-item">
           <small>TOTAL INCOME</small>
           <h2>$0.00</h2>
-          <span class="trend">0.0%</span>
         </div>
         <div class="card-item no-border">
           <small>MONTHLY SAVINGS</small>
           <h2>$0.00</h2>
-          <span class="trend">0.0%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="charts-container">
+      <div class="chart-card">
+        <h3>INCOME VS EXPENSE TRENDS</h3>
+        <div class="chart-wrapper">
+          <canvas id="trendsChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3>EXPENSE BY CATEGORY</h3>
+        <div class="chart-wrapper">
+          <canvas id="categoryChart"></canvas>
         </div>
       </div>
     </div>
@@ -72,6 +84,12 @@
           <tbody>
           </tbody>
         </table>
+      </div>
+
+      <div class="transactions-pagination">
+        <button type="button" id="prevTransactionsPage" class="pagination-button">Previous</button>
+        <div class="pagination-info" id="transactionsPageInfo">Page 1 of 1</div>
+        <button type="button" id="nextTransactionsPage" class="pagination-button">Next</button>
       </div>
     </div>
   </div>
