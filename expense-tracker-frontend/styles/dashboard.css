@@ -195,6 +195,47 @@ body::before {
   color: white;
 }
 
+.charts-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-bottom: 64px;
+  align-items: start;
+}
+
+.chart-card {
+  border: 2px solid black;
+  padding: 32px;
+  background: white;
+}
+
+.chart-card h3 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: black;
+  margin: 0 0 24px 0;
+  border-bottom: 2px solid black;
+  padding-bottom: 16px;
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 300px;
+  min-height: 300px;
+}
+
+.transactions-section {
+  margin-bottom: 64px;
+}
+
+@media (max-width: 1024px) {
+  .charts-container {
+    grid-template-columns: 1fr;
+  }
+}
+
 .transactions-header {
   display: flex;
   justify-content: space-between;
@@ -272,4 +313,58 @@ tr:last-child td { border-bottom: none; }
 .date-cell {
   font-size: 12px;
   color: #666;
+}
+
+.transactions-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.pagination-button {
+  border: 2px solid black;
+  background: white;
+  color: black;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  padding: 12px 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background: black;
+  color: white;
+}
+
+.pagination-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.pagination-info {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #333;
+}
+
+@media (max-width: 768px) {
+  .transactions-pagination {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pagination-button {
+    width: 100%;
+  }
+
+  .pagination-info {
+    text-align: center;
+  }
 }
