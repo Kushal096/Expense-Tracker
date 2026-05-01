@@ -55,7 +55,12 @@ async function apiCall(endpoint, method = 'GET', body = null) {
         options.body = JSON.stringify(body);
     }
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+    let response;
+    try {
+        response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+    } catch {
+        throw new Error('Network error. Unable to reach the server.');
+    }
     
     if (response.status === 401) {
         removeAuthToken();
@@ -71,7 +76,29 @@ async function apiCall(endpoint, method = 'GET', body = null) {
     }
 
     if (!response.ok) {
-        throw new Error(data?.detail || 'API Error');
+        const detail = typeof data?.detail === 'string' ? data.detail : '';
+
+        if (detail) {
+            throw new Error(detail);
+        }
+
+        if (response.status >= 500) {
+            throw new Error('Server error. Please try again in a moment.');
+        }
+
+        if (response.status === 404) {
+            throw new Error('Requested resource was not found.');
+        }
+
+        if (response.status === 403) {
+            throw new Error('You do not have permission to perform this action.');
+        }
+
+        if (response.status === 400) {
+            throw new Error('Invalid request. Please review your input and try again.');
+        }
+
+        throw new Error('Request failed. Please try again.');
     }
 
     return data;

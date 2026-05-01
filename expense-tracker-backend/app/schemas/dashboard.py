@@ -15,18 +15,20 @@ from typing import Optional
 class SummaryResponse(BaseModel):
     """Financial summary."""
 
-    total_income: float = Field(..., description="Sum of all incomes")
-    total_expense: float = Field(..., description="Sum of all expenses")
-    total_balance: float = Field(..., description="Total income - total expense")
-    monthly_savings: float = Field(..., description="Current month (income - expense)")
+    monthly_income: float = Field(..., description="Current month income")
+    monthly_expense: float = Field(..., description="Current month expense")
+    monthly_balance: float = Field(..., description="Current month (income - expense)")
+    total_savings: float = Field(
+        ..., description="Cumulative balance before current month (previous months only)"
+    )
 
     model_config = {
         "json_schema_extra": {
             "example": {
-                "total_income": 5000.00,
-                "total_expense": 1200.00,
-                "total_balance": 3800.00,
-                "monthly_savings": 500.00,
+                "monthly_income": 5000.00,
+                "monthly_expense": 1200.00,
+                "monthly_balance": 3800.00,
+                "total_savings": 15200.00,
             }
         }
     }

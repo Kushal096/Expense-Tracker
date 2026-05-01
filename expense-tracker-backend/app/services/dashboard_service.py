@@ -114,20 +114,36 @@ def get_summary(db: Session, user_id: int) -> SummaryResponse:
     Returns:
         SummaryResponse with totals
     """
-    total_income = _get_total_income(db, user_id)
-    total_expense = _get_total_expense(db, user_id)
-    total_balance = total_income - total_expense
-    
     current_month_start, current_month_end = _get_current_month_bounds()
-    current_income = _get_monthly_income(db, user_id, current_month_start, current_month_end)
-    current_expense = _get_monthly_expense(db, user_id, current_month_start, current_month_end)
-    monthly_savings = current_income - current_expense
+    monthly_income = _get_monthly_income(db, user_id, current_month_start, current_month_end)
+    monthly_expense = _get_monthly_expense(db, user_id, current_month_start, current_month_end)
+    monthly_balance = monthly_income - monthly_expense
+
+    previous_income = (
+        db.query(func.sum(Income.amount))
+        .filter(
+            Income.user_id == user_id,
+            Income.date < current_month_start,
+        )
+        .scalar()
+    )
+    previous_expense = (
+        db.query(func.sum(Expense.amount))
+        .filter(
+            Expense.user_id == user_id,
+            Expense.date < current_month_start,
+        )
+        .scalar()
+    )
+    total_savings = (float(previous_income) if previous_income else 0.0) - (
+        float(previous_expense) if previous_expense else 0.0
+    )
     
     return SummaryResponse(
-        total_income=total_income,
-        total_expense=total_expense,
-        total_balance=total_balance,
-        monthly_savings=monthly_savings,
+        monthly_income=monthly_income,
+        monthly_expense=monthly_expense,
+        monthly_balance=monthly_balance,
+        total_savings=total_savings,
     )
 
 

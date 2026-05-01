@@ -9,14 +9,32 @@ const closeEditModalBtn = document.getElementById("closeEditModalBtn");
 const cancelEditIncomeBtn = document.getElementById("cancelEditIncomeBtn");
 const updateIncomeBtn = document.getElementById("updateIncomeBtn");
 
+const searchIncomeInput = document.getElementById("searchIncomeInput");
+const filterCategoryInput = document.getElementById("filterCategory");
+const minIncomeAmountInput = document.getElementById("minIncomeAmount");
+const maxIncomeAmountInput = document.getElementById("maxIncomeAmount");
+const startIncomeDateInput = document.getElementById("startIncomeDate");
+const endIncomeDateInput = document.getElementById("endIncomeDate");
+const incomeTableBody = document.getElementById("incomeTableBody") || document.querySelector(".data-table tbody");
+
+const confirmDeleteModal = document.getElementById("confirmDeleteModal");
+const closeDeleteModalBtn = document.getElementById("closeDeleteModalBtn");
+const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+const deleteMessageText = document.getElementById("deleteMessageText");
+
 let incomes = [];
 let categories = [];
 let editingIncomeId = null;
+let pendingDeleteIncomeId = null;
+let isDataLoading = true;
+let loadErrorMessage = "";
 
 addIncomeBtn.addEventListener("click", () => {
     document.getElementById("title").value = "";
     document.getElementById("amount").value = "";
-    document.getElementById("category").value = categories.length ? categories[0].id : "";
+    const incomeCategories = categories.filter(c => c.type === 'income');
+    document.getElementById("category").value = incomeCategories.length ? incomeCategories[0].id : "";
     document.getElementById("date").value = new Date().toISOString().split("T")[0];
     incomeModal.style.display = "flex";
 });
@@ -37,23 +55,130 @@ cancelEditIncomeBtn.addEventListener("click", closeEditModal);
 window.addEventListener("click", (e) => {
     if (e.target === incomeModal) closeCreateModal();
     if (e.target === editIncomeModal) closeEditModal();
+    if (e.target === confirmDeleteModal) closeDeleteModal();
 });
+
+function closeDeleteModal() {
+    if (confirmDeleteBtn && confirmDeleteBtn.disabled) return;
+    if (confirmDeleteModal) confirmDeleteModal.style.display = "none";
+    pendingDeleteIncomeId = null;
+}
+
+closeDeleteModalBtn?.addEventListener("click", closeDeleteModal);
+cancelDeleteBtn?.addEventListener("click", closeDeleteModal);
+
+function getReadableErrorMessage(error, fallbackMessage) {
+    const raw = String(error?.message || "").trim();
+
+    if (!raw) return fallbackMessage;
+    if (raw === "Failed to fetch") {
+        return "Network error. Please check your connection and try again.";
+    }
+
+    return raw;
+}
+
+function getLocalISODate(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+function normalizeText(value) {
+    return String(value ?? "").toLowerCase().trim();
+}
+
+function getFilteredIncomes() {
+    const searchTerm = normalizeText(searchIncomeInput?.value);
+    const categoryId = filterCategoryInput?.value || "";
+    const minAmount = minIncomeAmountInput?.value === "" ? null : parseFloat(minIncomeAmountInput.value);
+    const maxAmount = maxIncomeAmountInput?.value === "" ? null : parseFloat(maxIncomeAmountInput.value);
+    const startDate = startIncomeDateInput?.value || "";
+    const endDate = endIncomeDateInput?.value || "";
+
+    return incomes.filter((income) => {
+        const category = categories.find((c) => c.id === income.category_id);
+        const title = normalizeText(income.source || income.title || "Income");
+        const categoryName = normalizeText(category?.name || "Unknown");
+        const amountText = normalizeText(income.amount);
+        const incomeDate = getLocalISODate(income.date);
+
+        if (searchTerm) {
+            const matchesSearch =
+                title.includes(searchTerm) ||
+                categoryName.includes(searchTerm) ||
+                amountText.includes(searchTerm) ||
+                incomeDate.includes(searchTerm);
+
+            if (!matchesSearch) return false;
+        }
+
+        if (categoryId && String(income.category_id) !== String(categoryId)) {
+            return false;
+        }
+
+        if (minAmount !== null && !Number.isNaN(minAmount) && income.amount < minAmount) {
+            return false;
+        }
+
+        if (maxAmount !== null && !Number.isNaN(maxAmount) && income.amount > maxAmount) {
+            return false;
+        }
+
+        if (startDate && incomeDate && incomeDate < startDate) {
+            return false;
+        }
+
+        if (endDate && incomeDate && incomeDate > endDate) {
+            return false;
+        }
+
+        return true;
+    });
+}
+
+function attachFilterListeners() {
+    searchIncomeInput?.addEventListener("input", renderIncomes);
+    filterCategoryInput?.addEventListener("change", renderIncomes);
+    minIncomeAmountInput?.addEventListener("input", renderIncomes);
+    maxIncomeAmountInput?.addEventListener("input", renderIncomes);
+    startIncomeDateInput?.addEventListener("change", renderIncomes);
+    endIncomeDateInput?.addEventListener("change", renderIncomes);
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
     if (!requireAuth()) {
         return;
     }
 
+    attachFilterListeners();
+    incomeTableBody?.addEventListener("click", onIncomeTableClick);
+    confirmDeleteBtn?.addEventListener("click", handleConfirmDeleteIncome);
+
+    isDataLoading = true;
+    loadErrorMessage = "";
+    renderIncomes();
+
     try {
         [incomes, categories] = await Promise.all([
             apiCall('/incomes/'),
             apiCall('/categories/')
         ]);
-        
+
         populateCategorySelects();
-        renderIncomes(document.getElementById("filterCategory")?.value || "");
+        loadErrorMessage = "";
     } catch (error) {
+        const message = getReadableErrorMessage(error, "Unable to load incomes right now.");
+        loadErrorMessage = `Could not load income data. ${message}`;
+        showNotification(loadErrorMessage, 'error', 4000);
         console.error("Error loading income data:", error);
+    } finally {
+        isDataLoading = false;
+        renderIncomes();
     }
 });
 
@@ -67,49 +192,81 @@ function populateCategorySelects() {
     
     categorySelects.forEach(select => {
         if (select) {
-            select.innerHTML = incomeCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            select.innerHTML = '<option value="">Select a category</option>' +
+                incomeCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
         }
     });
 
-    const filterCategory = document.getElementById("filterCategory");
-    if (filterCategory) {
-        filterCategory.innerHTML = '<option value="">All Categories</option>' + 
+    if (filterCategoryInput) {
+        filterCategoryInput.innerHTML = '<option value="">All Categories</option>' + 
             incomeCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-            
-        filterCategory.addEventListener('change', (e) => {
-            renderIncomes(e.target.value);
-        });
     }
 }
 
-function renderIncomes(filterCategoryId = "") {
-    const tbody = document.getElementById("incomeTableBody") || document.querySelector(".data-table tbody");
+function renderIncomes() {
+    const tbody = incomeTableBody;
     if (!tbody) return;
+
+    if (isDataLoading) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="table-state-row">
+                    <span class="table-state-spinner" aria-hidden="true"></span>
+                    Loading incomes...
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    if (loadErrorMessage) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="table-state-row table-state-error">${loadErrorMessage}</td>
+            </tr>
+        `;
+        return;
+    }
     
+    const filteredIncomes = getFilteredIncomes();
     tbody.innerHTML = "";
-    
-    const filteredIncomes = filterCategoryId 
-        ? incomes.filter(i => i.category_id == filterCategoryId)
-        : incomes;
         
     let totalAmount = 0;
 
-    filteredIncomes.forEach(income => {
-        totalAmount += income.amount;
-        const category = categories.find(c => c.id === income.category_id);
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${income.title || income.source || 'Income'}</td>
-            <td>${category ? category.name : 'Unknown'}</td>
-            <td>$${income.amount.toFixed(2)}</td>
-            <td>${new Date(income.date).toLocaleDateString()}</td>
-            <td class="actions">
-                <svg onclick="openEditModal(${income.id})" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit" style="cursor: pointer; margin-right: 8px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                <svg onclick="deleteIncome(event, ${income.id})" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2" style="cursor: pointer; color: red;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-            </td>
+    if (!filteredIncomes.length) {
+        const emptyMessage = incomes.length
+            ? "No incomes match your current filters."
+            : "No data yet. Add your first income to get started.";
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="table-state-row">
+                    ${emptyMessage}
+                </td>
+            </tr>
         `;
-        tbody.appendChild(tr);
-    });
+    } else {
+        filteredIncomes.forEach((income) => {
+            totalAmount += Number(income.amount) || 0;
+            const category = categories.find((c) => c.id === income.category_id);
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${income.title || income.source || 'Income'}</td>
+                <td>${category ? category.name : 'Unknown'}</td>
+                <td>$${Number(income.amount).toFixed(2)}</td>
+                <td>${new Date(income.date).toLocaleDateString()}</td>
+                <td class="actions">
+                    <button type="button" class="icon-action-btn" data-action="edit" data-id="${income.id}" aria-label="Edit income">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button type="button" class="icon-action-btn icon-action-btn-delete" data-action="delete" data-id="${income.id}" aria-label="Delete income">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
 
     const countEl = document.getElementById("totalIncomeCount");
     const amountEl = document.getElementById("totalIncomeAmount");
@@ -135,12 +292,13 @@ async function createIncome(e) {
                 source, amount, date, category_id,
             });
             incomes.push(newIncome);
-            renderIncomes(document.getElementById("filterCategory")?.value || "");
+            renderIncomes();
             closeCreateModal();
             showNotification('Income created successfully!', 'success');
         });
     } catch (error) {
-        showNotification("Failed to add income: " + error.message, 'error');
+        const message = getReadableErrorMessage(error, "Unable to add income.");
+        showNotification(`Failed to add income. ${message}`, 'error');
         console.error("Error creating income:", error);
     }
 }
@@ -186,38 +344,70 @@ async function executeEditIncome(e) {
                 source, amount, date, category_id
             });
             incomes = incomes.map(i => i.id === editingIncomeId ? updatedIncome : i);
-            renderIncomes(document.getElementById("filterCategory")?.value || "");
+            renderIncomes();
             closeEditModal();
             showNotification('Income updated successfully!', 'success');
         });
     } catch (error) {
-        showNotification("Failed to update income: " + error.message, 'error');
+        const message = getReadableErrorMessage(error, "Unable to update income.");
+        showNotification(`Failed to update income. ${message}`, 'error');
         console.error("Error updating income:", error);
     }
 }
 if (updateIncomeBtn) updateIncomeBtn.addEventListener("click", executeEditIncome);
 
-async function deleteIncome(event, id) {
-    if (!confirm("Are you sure you want to delete this income?")) return;
+function onIncomeTableClick(event) {
+    const actionButton = event.target.closest("button[data-action]");
+    if (!actionButton) return;
 
-    const deleteButton = event?.target?.closest('svg');
-    if (deleteButton) {
-        deleteButton.style.pointerEvents = 'none';
-        deleteButton.style.opacity = '0.5';
+    const action = actionButton.dataset.action;
+    const id = Number(actionButton.dataset.id);
+    if (!id) return;
+
+    if (action === "edit") {
+        openEditModal(id);
+        return;
     }
 
+    if (action === "delete") {
+        openDeleteIncomeModal(id);
+    }
+}
+
+function openDeleteIncomeModal(id) {
+    const income = incomes.find((i) => i.id === id);
+    if (!income) return;
+
+    pendingDeleteIncomeId = id;
+
+    if (deleteMessageText) {
+        const label = income.title || income.source || "this income";
+        deleteMessageText.textContent = `Delete "${label}"? This action cannot be undone.`;
+    }
+
+    if (confirmDeleteModal) {
+        confirmDeleteModal.style.display = "flex";
+    }
+}
+
+async function handleConfirmDeleteIncome() {
+    if (!pendingDeleteIncomeId) return;
+    if (!confirmDeleteBtn || confirmDeleteBtn.disabled) return;
+
+    const deletingId = pendingDeleteIncomeId;
+
     try {
-        await apiCall(`/incomes/${id}`, 'DELETE');
-        incomes = incomes.filter(i => i.id !== id);
-        renderIncomes(document.getElementById("filterCategory")?.value || "");
+        await loadingManager.executeWithLoading(confirmDeleteBtn, async () => {
+            await apiCall(`/incomes/${deletingId}`, 'DELETE');
+        });
+
+        incomes = incomes.filter((i) => i.id !== deletingId);
+        closeDeleteModal();
+        renderIncomes();
         showNotification('Income deleted successfully!', 'success');
     } catch (error) {
-        showNotification("Failed to delete income: " + error.message, 'error');
+        const message = getReadableErrorMessage(error, "Unable to delete income.");
+        showNotification(`Failed to delete income. ${message}`, 'error');
         console.error("Error deleting income:", error);
-        
-        if (deleteButton) {
-            deleteButton.style.pointerEvents = 'auto';
-            deleteButton.style.opacity = '1';
-        }
     }
 }

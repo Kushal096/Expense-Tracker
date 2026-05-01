@@ -39,7 +39,7 @@
         <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M13.8427 13.8427C16.9248 10.7606 16.9248 5.76307 13.8427 2.68095C10.7606 -0.401168 5.76307 -0.401168 2.68095 2.68095C-0.401168 5.76307 -0.401168 10.7606 2.68095 13.8427C5.76307 16.9248 10.7606 16.9248 13.8427 13.8427ZM13.8427 13.8427L18.4239 18.4239" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <input type="text" placeholder="Search income by title...">
+        <input type="text" id="searchIncomeInput" placeholder="Search income by title, category, or amount...">
       </div>
       
       <div class="filters-row">
@@ -53,16 +53,16 @@
         <div class="filter-group">
           <label>Amount Range</label>
           <div class="range-inputs">
-            <input type="number" class="filter-input italic" placeholder="Min">
-            <input type="number" class="filter-input italic" placeholder="Max">
+            <input type="number" class="filter-input italic" id="minIncomeAmount" placeholder="Min">
+            <input type="number" class="filter-input italic" id="maxIncomeAmount" placeholder="Max">
           </div>
         </div>
         
         <div class="filter-group">
           <label>Date Range</label>
           <div class="range-inputs">
-            <input type="date" class="filter-input">
-            <input type="date" class="filter-input">
+            <input type="date" class="filter-input" id="startIncomeDate">
+            <input type="date" class="filter-input" id="endIncomeDate">
           </div>
         </div>
       </div>
@@ -152,6 +152,27 @@
         <div class="modal-actions">
           <button class="btn-save" id="updateIncomeBtn">Update</button>
           <button class="btn-cancel" id="cancelEditIncomeBtn">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="confirmDeleteModal">
+    <div class="modal-container delete-modal-container">
+      <div class="modal-header">
+        <h2>Delete Income</h2>
+        <button class="close-btn" id="closeDeleteModalBtn" aria-label="Close delete confirmation">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M6 6L18 18" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body delete-modal-body">
+        <p id="deleteMessageText" class="delete-modal-text">Delete this income? This action cannot be undone.</p>
+        <div class="modal-actions">
+          <button class="btn-save btn-danger" id="confirmDeleteBtn">Delete</button>
+          <button class="btn-cancel" id="cancelDeleteBtn">Cancel</button>
         </div>
       </div>
     </div>

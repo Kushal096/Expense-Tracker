@@ -9,107 +9,165 @@ const closeEditModalBtn = document.getElementById("closeEditModalBtn");
 const cancelEditExpenseBtn = document.getElementById("cancelEditExpenseBtn");
 const updateExpenseBtn = document.getElementById("updateExpenseBtn");
 
+const searchExpenseInput = document.getElementById("searchExpenseInput");
+const filterCategoryInput = document.getElementById("filterCategory");
+const minExpenseAmountInput = document.getElementById("minExpenseAmount");
+const maxExpenseAmountInput = document.getElementById("maxExpenseAmount");
+const startExpenseDateInput = document.getElementById("startExpenseDate");
+const endExpenseDateInput = document.getElementById("endExpenseDate");
+const expenseTableBody = document.getElementById("expenseTableBody") || document.querySelector(".data-table tbody");
+
+const confirmDeleteModal = document.getElementById("confirmDeleteModal");
+const closeDeleteModalBtn = document.getElementById("closeDeleteModalBtn");
+const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+const deleteMessageText = document.getElementById("deleteMessageText");
+
 let expenses = [];
 let categories = [];
 let editingExpenseId = null;
+let pendingDeleteExpenseId = null;
+let isDataLoading = true;
+let loadErrorMessage = "";
 
-addExpenseBtn.addEventListener("click", () => {
-    document.getElementById("title").value = "";
-    document.getElementById("amount").value = "";
-    document.getElementById("category").value = categories.length ? categories[0].id : "";
-    document.getElementById("date").value = new Date().toISOString().split("T")[0];
-    expenseModal.style.display = "flex";
-});
+function getReadableErrorMessage(error, fallbackMessage) {
+    const raw = String(error?.message || "").trim();
 
-const closeCreateModal = () => {
-    expenseModal.style.display = "none";
-};
-closeModalBtn.addEventListener("click", closeCreateModal);
-cancelExpenseBtn.addEventListener("click", closeCreateModal);
+    if (!raw) return fallbackMessage;
+    if (raw === "Failed to fetch") {
+        return "Network error. Please check your connection and try again.";
+    }
 
-const closeEditModal = () => {
-    editExpenseModal.style.display = "none";
-    editingExpenseId = null;
-};
-closeEditModalBtn.addEventListener("click", closeEditModal);
-cancelEditExpenseBtn.addEventListener("click", closeEditModal);
+    return raw;
+}
 
-window.addEventListener("click", (e) => {
-    if (e.target === expenseModal) closeCreateModal();
-    if (e.target === editExpenseModal) closeEditModal();
-});
+function getLocalISODate(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
 
-document.addEventListener("DOMContentLoaded", async () => {
-    if (!requireAuth()) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+function normalizeText(value) {
+    return String(value ?? "").toLowerCase().trim();
+}
+
+function getFilteredExpenses() {
+    const searchTerm = normalizeText(searchExpenseInput?.value);
+    const categoryId = filterCategoryInput?.value || "";
+    const minAmount = minExpenseAmountInput?.value === "" ? null : parseFloat(minExpenseAmountInput.value);
+    const maxAmount = maxExpenseAmountInput?.value === "" ? null : parseFloat(maxExpenseAmountInput.value);
+    const startDate = startExpenseDateInput?.value || "";
+    const endDate = endExpenseDateInput?.value || "";
+
+    return expenses.filter((expense) => {
+        const category = categories.find((c) => c.id === expense.category_id);
+        const description = normalizeText(expense.description || "Untitled");
+        const categoryName = normalizeText(category?.name || "Unknown");
+        const amountText = normalizeText(expense.amount);
+        const expenseDate = getLocalISODate(expense.date);
+
+        if (searchTerm) {
+            const matchesSearch =
+                description.includes(searchTerm) ||
+                categoryName.includes(searchTerm) ||
+                amountText.includes(searchTerm) ||
+                expenseDate.includes(searchTerm);
+
+            if (!matchesSearch) return false;
+        }
+
+        if (categoryId && String(expense.category_id) !== String(categoryId)) {
+            return false;
+        }
+
+        if (minAmount !== null && !Number.isNaN(minAmount) && expense.amount < minAmount) {
+            return false;
+        }
+
+        if (maxAmount !== null && !Number.isNaN(maxAmount) && expense.amount > maxAmount) {
+            return false;
+        }
+
+        if (startDate && expenseDate && expenseDate < startDate) {
+            return false;
+        }
+
+        if (endDate && expenseDate && expenseDate > endDate) {
+            return false;
+        }
+
+        return true;
+    });
+}
+
+function renderExpenses() {
+    const tbody = expenseTableBody;
+    if (!tbody) return;
+
+    if (isDataLoading) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="table-state-row">
+                    <span class="table-state-spinner" aria-hidden="true"></span>
+                    Loading expenses...
+                </td>
+            </tr>
+        `;
         return;
     }
 
-    try {
-        [expenses, categories] = await Promise.all([
-            apiCall('/expenses/'),
-            apiCall('/categories/')
-        ]);
-        
-        populateCategorySelects();
-        renderExpenses(document.getElementById("filterCategory")?.value || "");
-    } catch (error) {
-        console.error("Error loading data:", error);
+    if (loadErrorMessage) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="table-state-row table-state-error">${loadErrorMessage}</td>
+            </tr>
+        `;
+        return;
     }
-});
 
-function populateCategorySelects() {
-    const expenseCategories = categories.filter(c => c.type === 'expense');
+    const filteredExpenses = getFilteredExpenses();
+    tbody.innerHTML = "";
 
-    const categorySelects = [
-        document.getElementById("category"),
-        document.getElementById("editExpenseCategory")
-    ];
-    
-    categorySelects.forEach(select => {
-        if (select) {
-            select.innerHTML = expenseCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-        }
-    });
+    let totalAmount = 0;
 
-    const filterCategory = document.getElementById("filterCategory");
-    if (filterCategory) {
-        filterCategory.innerHTML = '<option value="">All Categories</option>' + 
-            expenseCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-            
-        filterCategory.addEventListener('change', (e) => {
-            renderExpenses(e.target.value);
+    if (!filteredExpenses.length) {
+        const emptyMessage = expenses.length
+            ? "No expenses match your current filters."
+            : "No data yet. Add your first expense to get started.";
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="table-state-row">
+                    ${emptyMessage}
+                </td>
+            </tr>
+        `;
+    } else {
+        filteredExpenses.forEach((expense) => {
+            totalAmount += Number(expense.amount) || 0;
+            const category = categories.find((c) => c.id === expense.category_id);
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${expense.description || 'Untitled'}</td>
+                <td>${category ? category.name : 'Unknown'}</td>
+                <td>$${Number(expense.amount).toFixed(2)}</td>
+                <td>${new Date(expense.date).toLocaleDateString()}</td>
+                <td class="actions">
+                    <button type="button" class="icon-action-btn" data-action="edit" data-id="${expense.id}" aria-label="Edit expense">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button type="button" class="icon-action-btn icon-action-btn-delete" data-action="delete" data-id="${expense.id}" aria-label="Delete expense">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
         });
     }
-}
-
-function renderExpenses(filterCategoryId = "") {
-    const tbody = document.getElementById("expenseTableBody") || document.querySelector(".data-table tbody");
-    if (!tbody) return;
-    
-    tbody.innerHTML = "";
-    
-    const filteredExpenses = filterCategoryId 
-        ? expenses.filter(e => e.category_id == filterCategoryId)
-        : expenses;
-        
-    let totalAmount = 0;
-    
-    filteredExpenses.forEach(expense => {
-        totalAmount += expense.amount;
-        const category = categories.find(c => c.id === expense.category_id);
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${expense.description || 'Untitled'}</td>
-            <td>${category ? category.name : 'Unknown'}</td>
-            <td>$${expense.amount.toFixed(2)}</td>
-            <td>${new Date(expense.date).toLocaleDateString()}</td>
-            <td class="actions">
-                <svg onclick="openEditModal(${expense.id})" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit" style="cursor: pointer; margin-right: 8px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                <svg onclick="deleteExpense(event, ${expense.id})" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2" style="cursor: pointer; color: red;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
 
     const countEl = document.getElementById("totalExpenseCount");
     const amountEl = document.getElementById("totalExpenseAmount");
@@ -117,9 +175,110 @@ function renderExpenses(filterCategoryId = "") {
     if (amountEl) amountEl.textContent = `$${totalAmount.toFixed(2)}`;
 }
 
+function attachFilterListeners() {
+    searchExpenseInput?.addEventListener("input", renderExpenses);
+    filterCategoryInput?.addEventListener("change", renderExpenses);
+    minExpenseAmountInput?.addEventListener("input", renderExpenses);
+    maxExpenseAmountInput?.addEventListener("input", renderExpenses);
+    startExpenseDateInput?.addEventListener("change", renderExpenses);
+    endExpenseDateInput?.addEventListener("change", renderExpenses);
+}
+
+function populateCategorySelects() {
+    const expenseCategories = categories.filter((c) => c.type === "expense");
+
+    const categorySelects = [
+        document.getElementById("category"),
+        document.getElementById("editExpenseCategory")
+    ];
+
+    categorySelects.forEach((select) => {
+        if (select) {
+            select.innerHTML = '<option value="">Select a category</option>' +
+                expenseCategories.map((c) => `<option value="${c.id}">${c.name}</option>`).join("");
+        }
+    });
+
+    if (filterCategoryInput) {
+        filterCategoryInput.innerHTML = '<option value="">All Categories</option>' +
+            expenseCategories.map((c) => `<option value="${c.id}">${c.name}</option>`).join("");
+    }
+}
+
+function closeCreateModal() {
+    expenseModal.style.display = "none";
+}
+
+function closeEditModal() {
+    editExpenseModal.style.display = "none";
+    editingExpenseId = null;
+}
+
+if (addExpenseBtn) {
+    addExpenseBtn.addEventListener("click", () => {
+        document.getElementById("title").value = "";
+        document.getElementById("amount").value = "";
+        document.getElementById("category").value = categories.length ? String(categories[0].id) : "";
+        document.getElementById("date").value = new Date().toISOString().split("T")[0];
+        expenseModal.style.display = "flex";
+    });
+}
+
+closeModalBtn?.addEventListener("click", closeCreateModal);
+cancelExpenseBtn?.addEventListener("click", closeCreateModal);
+closeEditModalBtn?.addEventListener("click", closeEditModal);
+cancelEditExpenseBtn?.addEventListener("click", closeEditModal);
+
+window.addEventListener("click", (e) => {
+    if (e.target === expenseModal) closeCreateModal();
+    if (e.target === editExpenseModal) closeEditModal();
+    if (e.target === confirmDeleteModal) closeDeleteModal();
+});
+
+function closeDeleteModal() {
+    if (confirmDeleteBtn && confirmDeleteBtn.disabled) return;
+    if (confirmDeleteModal) confirmDeleteModal.style.display = "none";
+    pendingDeleteExpenseId = null;
+}
+
+closeDeleteModalBtn?.addEventListener("click", closeDeleteModal);
+cancelDeleteBtn?.addEventListener("click", closeDeleteModal);
+
+document.addEventListener("DOMContentLoaded", async () => {
+    if (!requireAuth()) {
+        return;
+    }
+
+    attachFilterListeners();
+    expenseTableBody?.addEventListener("click", onExpenseTableClick);
+    confirmDeleteBtn?.addEventListener("click", handleConfirmDeleteExpense);
+
+    isDataLoading = true;
+    loadErrorMessage = "";
+    renderExpenses();
+
+    try {
+        [expenses, categories] = await Promise.all([
+            apiCall('/expenses/'),
+            apiCall('/categories/')
+        ]);
+
+        populateCategorySelects();
+        loadErrorMessage = "";
+    } catch (error) {
+        const message = getReadableErrorMessage(error, "Unable to load expenses right now.");
+        loadErrorMessage = `Could not load expense data. ${message}`;
+        showNotification(loadErrorMessage, 'error', 4000);
+        console.error("Error loading data:", error);
+    } finally {
+        isDataLoading = false;
+        renderExpenses();
+    }
+});
+
 async function createExpense(e) {
     e.preventDefault();
-    
+
     if (!saveExpenseBtn || saveExpenseBtn.disabled) {
         return;
     }
@@ -135,35 +294,37 @@ async function createExpense(e) {
                 amount, category_id, date, description
             });
             expenses.push(newExpense);
-            renderExpenses(document.getElementById("filterCategory")?.value || "");
+            renderExpenses();
             closeCreateModal();
             showNotification('Expense created successfully!', 'success');
         });
     } catch (error) {
-        showNotification("Failed to create expense: " + error.message, 'error');
+        const message = getReadableErrorMessage(error, "Unable to create expense.");
+        showNotification(`Failed to create expense. ${message}`, 'error');
         console.error("Error creating expense:", error);
     }
 }
+
 if (saveExpenseBtn) saveExpenseBtn.addEventListener("click", createExpense);
 
 function openEditModal(id) {
-    const expense = expenses.find(e => e.id === id);
+    const expense = expenses.find((e) => e.id === id);
     if (!expense) return;
-    
+
     editingExpenseId = id;
     document.getElementById("editExpenseTitle").value = expense.description;
     document.getElementById("editExpenseAmount").value = expense.amount;
     document.getElementById("editExpenseCategory").value = expense.category_id;
     document.getElementById("editExpenseDate").value = expense.date.split("T")[0];
-    
+
     editExpenseModal.style.display = "flex";
 }
 
 async function executeEditExpense(e) {
     e.preventDefault();
-    
+
     if (!editingExpenseId) return;
-    
+
     if (!updateExpenseBtn || updateExpenseBtn.disabled) {
         return;
     }
@@ -178,39 +339,72 @@ async function executeEditExpense(e) {
             const updatedExpense = await apiCall(`/expenses/${editingExpenseId}`, 'PATCH', {
                 description, amount, category_id, date
             });
-            expenses = expenses.map(e => e.id === editingExpenseId ? updatedExpense : e);
-            renderExpenses(document.getElementById("filterCategory")?.value || "");
+            expenses = expenses.map((e) => e.id === editingExpenseId ? updatedExpense : e);
+            renderExpenses();
             closeEditModal();
             showNotification('Expense updated successfully!', 'success');
         });
     } catch (error) {
-        showNotification("Failed to update expense: " + error.message, 'error');
+        const message = getReadableErrorMessage(error, "Unable to update expense.");
+        showNotification(`Failed to update expense. ${message}`, 'error');
         console.error("Error updating expense:", error);
     }
 }
+
 if (updateExpenseBtn) updateExpenseBtn.addEventListener("click", executeEditExpense);
 
-async function deleteExpense(event, id) {
-    if (!confirm("Are you sure you want to delete this expense?")) return;
+function onExpenseTableClick(event) {
+    const actionButton = event.target.closest("button[data-action]");
+    if (!actionButton) return;
 
-    const deleteButton = event?.target?.closest('svg');
-    if (deleteButton) {
-        deleteButton.style.pointerEvents = 'none';
-        deleteButton.style.opacity = '0.5';
+    const action = actionButton.dataset.action;
+    const id = Number(actionButton.dataset.id);
+    if (!id) return;
+
+    if (action === "edit") {
+        openEditModal(id);
+        return;
     }
 
+    if (action === "delete") {
+        openDeleteExpenseModal(id);
+    }
+}
+
+function openDeleteExpenseModal(id) {
+    const expense = expenses.find((e) => e.id === id);
+    if (!expense) return;
+
+    pendingDeleteExpenseId = id;
+
+    if (deleteMessageText) {
+        const label = expense.description || "this expense";
+        deleteMessageText.textContent = `Delete "${label}"? This action cannot be undone.`;
+    }
+
+    if (confirmDeleteModal) {
+        confirmDeleteModal.style.display = "flex";
+    }
+}
+
+async function handleConfirmDeleteExpense() {
+    if (!pendingDeleteExpenseId) return;
+    if (!confirmDeleteBtn || confirmDeleteBtn.disabled) return;
+
+    const deletingId = pendingDeleteExpenseId;
+
     try {
-        await apiCall(`/expenses/${id}`, 'DELETE');
-        expenses = expenses.filter(e => e.id !== id);
-        renderExpenses(document.getElementById("filterCategory")?.value || "");
+        await loadingManager.executeWithLoading(confirmDeleteBtn, async () => {
+            await apiCall(`/expenses/${deletingId}`, 'DELETE');
+        });
+
+        expenses = expenses.filter((e) => e.id !== deletingId);
+        closeDeleteModal();
+        renderExpenses();
         showNotification('Expense deleted successfully!', 'success');
     } catch (error) {
-        showNotification("Failed to delete expense: " + error.message, 'error');
+        const message = getReadableErrorMessage(error, "Unable to delete expense.");
+        showNotification(`Failed to delete expense. ${message}`, 'error');
         console.error("Error deleting expense:", error);
-        
-        if (deleteButton) {
-            deleteButton.style.pointerEvents = 'auto';
-            deleteButton.style.opacity = '1';
-        }
     }
 }
