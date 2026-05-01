@@ -34,7 +34,7 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard"])
     "/summary",
     response_model=SummaryResponse,
     summary="Get financial summary",
-    description="Returns total income, expense, balance and monthly savings with month-over-month change percentages.",
+    description="Returns current month income/expense/balance and cumulative savings from all previous months.",
 )
 def read_summary(
     db: Session = Depends(get_db),
@@ -43,9 +43,8 @@ def read_summary(
     """Fetch financial summary for the current user.
     
     Includes:
-    - All-time totals (income, expense, balance)
-    - Current month savings
-    - Month-over-month percentage changes
+    - Current month income, expense, and balance
+    - Total savings up to the previous month
     """
     user_id = extract_user_id(current_user)
     return get_summary(db, user_id)

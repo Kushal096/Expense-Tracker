@@ -125,10 +125,10 @@ function renderSummaryCards(summary) {
     return;
   }
 
-  updateCard(cards[0], formatCurrency(summary.total_balance));
-  updateCard(cards[1], formatCurrency(summary.total_expense));
-  updateCard(cards[2], formatCurrency(summary.total_income));
-  updateCard(cards[3], formatCurrency(summary.monthly_savings));
+  updateCard(cards[0], formatCurrency(summary.monthly_balance));
+  updateCard(cards[1], formatCurrency(summary.monthly_expense));
+  updateCard(cards[2], formatCurrency(summary.monthly_income));
+  updateCard(cards[3], formatCurrency(summary.total_savings));
 }
 
 function updateCard(cardElement, value) {
