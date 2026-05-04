@@ -1,3 +1,16 @@
+"""Income routes.
+
+All income endpoints are protected and require:
+`Authorization: Bearer <access_token>`.
+
+Endpoints:
+    GET /incomes/ - List all incomes for current user
+    POST /incomes/ - Create a new income
+    GET /incomes/{income_id} - Get an income by ID
+    PATCH /incomes/{income_id} - Update an income
+    DELETE /incomes/{income_id} - Delete an income
+"""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.schemas.income_schema import IncomeCreate, IncomeResponse
@@ -13,12 +26,13 @@ from app.dependencies.auth_dependencies import get_current_user, extract_user_id
 
 router = APIRouter(prefix="/incomes", tags=["incomes"])
 
+
 @router.get(
     "/",
     response_model=list[IncomeResponse],
     summary="Get all incomes for current user",
+    description="Returns a list of all incomes for the authenticated user.",
 )
-
 def read_incomes(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
@@ -26,10 +40,12 @@ def read_incomes(
     """Fetch all incomes for the current user."""
     return get_incomes_by_user(db, extract_user_id(current_user))
 
+
 @router.post(
     "/",
     response_model=IncomeResponse,
     summary="Create a new income",
+    description="Creates a new income record for the authenticated user.",
 )
 def create_new_income(
     income: IncomeCreate,
@@ -44,6 +60,7 @@ def create_new_income(
     "/{income_id}",
     response_model=IncomeResponse,
     summary="Update an income",
+    description="Updates an existing income record by ID for the authenticated user.",
 )
 def update_existing_income(
     income_id: int,
@@ -60,10 +77,11 @@ def update_existing_income(
     return updated_income
 
 
-
 @router.delete(
     "/{income_id}",
+    status_code=status.HTTP_200_OK,
     summary="Delete an income",
+    description="Deletes an existing income record by ID for the authenticated user.",
 )
 def delete_existing_income(
     income_id: int,
@@ -83,6 +101,7 @@ def delete_existing_income(
     "/{income_id}",
     response_model=IncomeResponse,
     summary="Get an income by ID",
+    description="Returns a single income record by ID for the authenticated user.",
 )
 def read_income_by_id(
     income_id: int,

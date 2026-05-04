@@ -3,6 +3,9 @@
 Provides business logic for expense CRUD operations with user isolation.
 All operations enforce user ownership checks to ensure data privacy.
 
+Uses BaseCRUDService for generic CRUD operations and shared category
+validation utilities to reduce code duplication.
+
 Example:
     Create an expense for a user:
         expense = create_expense(db, expense_data, user_id=1)
@@ -14,6 +17,11 @@ Example:
 from sqlalchemy.orm import Session
 from app.models.expense_models import Expense
 from app.schemas.expense_schema import ExpenseBase, ExpenseResponse
+from app.services.base_crud_service import BaseCRUDService
+from app.core.category_validation import get_valid_category
+
+# Initialize CRUD service for expenses
+_crud_service = BaseCRUDService(Expense, ExpenseResponse)
 
 
 def create_expense(db: Session, expense_data: ExpenseBase, user_id: int) -> ExpenseResponse:
@@ -28,24 +36,17 @@ def create_expense(db: Session, expense_data: ExpenseBase, user_id: int) -> Expe
         ExpenseResponse: Created expense object, including auto-generated ID and timestamps.
     
     Raises:
+        HTTPException (400) if category is invalid or doesn't exist.
         SQLAlchemy exceptions on database errors (e.g., foreign key violations).
     
     Note:
-        - The expense is immediately committed to the database.
+        - Category is validated before creation.
+        - Expense is immediately committed to the database.
         - Timestamps (created_at, updated_at) are set by the database.
-        - Category must exist; violating foreign key constraint will raise an error.
     """
-    expense = Expense(
-        amount=expense_data.amount,
-        date=expense_data.date,
-        description=expense_data.description,
-        user_id=user_id,
-        category_id=expense_data.category_id
-    )
-    db.add(expense)
-    db.commit()
-    db.refresh(expense)
-    return ExpenseResponse.model_validate(expense)
+    # Validate category exists and is of type "expense"
+    get_valid_category(db, expense_data.category_id, "expense")
+    return _crud_service.create(db, expense_data, user_id)
 
 
 def get_expenses_by_user(db: Session, user_id: int) -> list[ExpenseResponse]:
@@ -61,10 +62,8 @@ def get_expenses_by_user(db: Session, user_id: int) -> list[ExpenseResponse]:
     Note:
         - Query is filtered to ensure user isolation.
         - Results are returned in insertion order.
-        - This operation does NOT perform any aggregations (e.g., sum, count).
     """
-    expenses = db.query(Expense).filter(Expense.user_id == user_id).all()
-    return [ExpenseResponse.model_validate(exp) for exp in expenses]
+    return _crud_service.get_all_by_user(db, user_id)
 
 
 def get_expense_by_id(db: Session, expense_id: int, user_id: int) -> ExpenseResponse | None:
@@ -80,12 +79,9 @@ def get_expense_by_id(db: Session, expense_id: int, user_id: int) -> ExpenseResp
     
     Note:
         - Returns None if expense does not exist OR does not belong to the user.
-        - This maintains user isolation and prevents unauthorized access.
+        - Maintains user isolation and prevents unauthorized access.
     """
-    expense = db.query(Expense).filter(Expense.id == expense_id, Expense.user_id == user_id).first()
-    if expense:
-        return ExpenseResponse.model_validate(expense)
-    return None
+    return _crud_service.get_by_id(db, expense_id, user_id)
 
 
 def update_expense(
@@ -103,23 +99,17 @@ def update_expense(
         ExpenseResponse | None: Updated expense object if found and owned, else None.
     
     Raises:
+        HTTPException (400) if category is invalid or doesn't exist.
         SQLAlchemy exceptions on database errors (e.g., foreign key violations).
     
     Note:
-        - Only the specified fields are updated; other fields remain unchanged.
+        - Category is validated before update.
         - The updated_at timestamp is automatically updated by the database.
-        - Returns None if expense does not exist OR does not belong to the user.
+        - Returns None if expense doesn't exist or doesn't belong to user.
     """
-    expense = db.query(Expense).filter(Expense.id == expense_id, Expense.user_id == user_id).first()
-    if not expense:
-        return None
-    expense.amount = expense_data.amount
-    expense.date = expense_data.date
-    expense.description = expense_data.description
-    expense.category_id = expense_data.category_id
-    db.commit()
-    db.refresh(expense)
-    return ExpenseResponse.model_validate(expense)
+    # Validate category exists and is of type "expense"
+    get_valid_category(db, expense_data.category_id, "expense")
+    return _crud_service.update(db, expense_id, expense_data, user_id)
 
 
 def delete_expense(db: Session, expense_id: int, user_id: int) -> bool:
@@ -134,13 +124,7 @@ def delete_expense(db: Session, expense_id: int, user_id: int) -> bool:
         bool: True if expense was deleted, False if not found or not owned.
     
     Note:
-        - The deletion is immediately committed to the database.
-        - Returns False if expense does not exist OR does not belong to the user.
+        - Deletion is immediately committed to the database.
         - Once deleted, the expense cannot be recovered.
     """
-    expense = db.query(Expense).filter(Expense.id == expense_id, Expense.user_id == user_id).first()
-    if not expense:
-        return False
-    db.delete(expense)
-    db.commit()
-    return True
+    return _crud_service.delete(db, expense_id, user_id)

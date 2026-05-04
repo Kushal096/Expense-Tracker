@@ -10,7 +10,7 @@ Provides analytics and financial insights including:
 - Recent transaction history
 """
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.dependencies.auth_dependencies import get_current_user, extract_user_id
@@ -57,7 +57,7 @@ def read_summary(
     description="Returns monthly income and expense data for the last 12 months.",
 )
 def read_trends(
-    months: int = 12,
+    months: int = Query(12, ge=1, le=60),
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ) -> TrendsResponse:
@@ -69,7 +69,6 @@ def read_trends(
     - months: Number of months to return (default 12, max 60)
     """
     user_id = extract_user_id(current_user)
-    months = min(months, 60)
     return get_trends(db, user_id, months_limit=months)
 
 
@@ -98,8 +97,8 @@ def read_categories(
     description="Returns the latest income and expense records combined, newest first.",
 )
 def read_recent_transactions(
-    skip: int = 0,
-    limit: int = 10,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ) -> RecentTransactionsResponse:
@@ -110,6 +109,4 @@ def read_recent_transactions(
     - limit: Number of transactions to return (default 10, max 100)
     """
     user_id = extract_user_id(current_user)
-    skip = max(0, skip)
-    limit = min(limit, 100)
     return get_recent_transactions(db, user_id, skip=skip, limit=limit)

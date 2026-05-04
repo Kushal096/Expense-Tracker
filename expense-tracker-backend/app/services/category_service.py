@@ -57,7 +57,8 @@ def get_all_categories(db: Session) -> list[CategoryResponse]:
         - Display category list to users.
         - Validate category_id when creating expenses.
     """
-    return db.query(Category).all()
+    categories = db.query(Category).all()
+    return [CategoryResponse.model_validate(category) for category in categories]
 
 
 def create_category(db: Session, name: str, type: str) -> CategoryResponse:
