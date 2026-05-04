@@ -1,14 +1,22 @@
-from pydantic import BaseModel, Field
 from datetime import datetime
+
+from pydantic import BaseModel, Field, field_validator
+
+from app.core.validation import parse_date_input
 
 
 class ExpenseBase(BaseModel):
     """Payload used by create/update expense endpoints."""
 
     amount: float = Field(..., gt=0, description="Expense amount", examples=[19.99])
-    category_id: int = Field(..., description="ID of the expense category", examples=[1])
+    category_id: int = Field(..., gt=0, description="ID of the expense category", examples=[1])
     description: str = Field("", description="Optional expense description", examples=["Lunch at cafe"])
     date: datetime = Field(..., description="Date and time of the expense", examples=["2024-06-01T12:00:00Z"])
+
+    @field_validator("date", mode="before")
+    @classmethod
+    def validate_date(cls, value):
+        return parse_date_input(value)
 
 
 ExpenseCreate = ExpenseBase

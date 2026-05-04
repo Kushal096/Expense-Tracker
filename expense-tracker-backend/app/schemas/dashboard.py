@@ -7,9 +7,9 @@ Provides Pydantic models for dashboard endpoints including:
 - Recent transactions
 """
 
-from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class SummaryResponse(BaseModel):
@@ -40,7 +40,7 @@ class MonthlyTrend(BaseModel):
     month: str = Field(..., description="YYYY-MM format")
     total_income: float = Field(..., description="Total income for the month")
     total_expense: float = Field(..., description="Total expense for the month")
-    balance: Optional[float] = Field(None, description="Income - expense for the month")
+    balance: float = Field(..., description="Income - expense for the month")
 
     model_config = {
         "json_schema_extra": {
@@ -57,7 +57,7 @@ class MonthlyTrend(BaseModel):
 class TrendsResponse(BaseModel):
     """Container for monthly trend data."""
 
-    trends: list[MonthlyTrend] = Field(..., description="List of monthly trends")
+    trends: list[MonthlyTrend] = Field(default_factory=list, description="List of monthly trends")
 
     model_config = {
         "json_schema_extra": {
@@ -100,7 +100,7 @@ class CategoryExpense(BaseModel):
 class CategoriesResponse(BaseModel):
     """Container for category expense data."""
 
-    categories: list[CategoryExpense] = Field(..., description="List of categories with totals")
+    categories: list[CategoryExpense] = Field(default_factory=list, description="List of categories with totals")
 
     model_config = {
         "json_schema_extra": {
@@ -142,7 +142,7 @@ class Transaction(BaseModel):
 class RecentTransactionsResponse(BaseModel):
     """Container for recent transactions."""
 
-    transactions: list[Transaction] = Field(..., description="List of recent transactions")
+    transactions: list[Transaction] = Field(default_factory=list, description="List of recent transactions")
     total: int = Field(..., description="Total number of available transactions")
     skip: int = Field(..., description="Number of transactions skipped for the current page")
     limit: int = Field(..., description="Maximum number of transactions returned per page")

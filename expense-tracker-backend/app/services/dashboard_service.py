@@ -158,7 +158,7 @@ def get_trends(db: Session, user_id: int, months_limit: int = 12) -> TrendsRespo
     Returns:
         TrendsResponse with monthly breakdown
     """
-    from sqlalchemy import and_
+    months_limit = max(1, months_limit)
     
     income_records = (
         db.query(
@@ -275,6 +275,9 @@ def get_recent_transactions(db: Session, user_id: int, skip: int = 0, limit: int
     Returns:
         RecentTransactionsResponse with paginated transactions
     """
+    skip = max(0, skip)
+    limit = max(1, limit)
+
     transactions = []
     
     expenses = (

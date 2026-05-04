@@ -2,6 +2,13 @@
 
 All expense endpoints are protected and require:
 `Authorization: Bearer <access_token>`.
+
+Endpoints:
+    GET /expenses/ - List all expenses for current user
+    POST /expenses/ - Create a new expense
+    GET /expenses/{expense_id} - Get an expense by ID
+    PATCH /expenses/{expense_id} - Update an expense
+    DELETE /expenses/{expense_id} - Delete an expense
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -18,8 +25,6 @@ from app.db.database import get_db
 from app.dependencies.auth_dependencies import get_current_user, extract_user_id
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
-
-
 
 
 @router.get(
