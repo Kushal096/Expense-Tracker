@@ -9,12 +9,6 @@ const closeEditModalBtn = document.getElementById("closeEditModalBtn");
 const cancelEditExpenseBtn = document.getElementById("cancelEditExpenseBtn");
 const updateExpenseBtn = document.getElementById("updateExpenseBtn");
 
-const searchExpenseInput = document.getElementById("searchExpenseInput");
-const filterCategoryInput = document.getElementById("filterCategory");
-const minExpenseAmountInput = document.getElementById("minExpenseAmount");
-const maxExpenseAmountInput = document.getElementById("maxExpenseAmount");
-const startExpenseDateInput = document.getElementById("startExpenseDate");
-const endExpenseDateInput = document.getElementById("endExpenseDate");
 const expenseTableBody = document.getElementById("expenseTableBody") || document.querySelector(".data-table tbody");
 
 const confirmDeleteModal = document.getElementById("confirmDeleteModal");
@@ -41,68 +35,6 @@ function getReadableErrorMessage(error, fallbackMessage) {
     return raw;
 }
 
-function getLocalISODate(value) {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "";
-
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-}
-
-function normalizeText(value) {
-    return String(value ?? "").toLowerCase().trim();
-}
-
-function getFilteredExpenses() {
-    const searchTerm = normalizeText(searchExpenseInput?.value);
-    const categoryId = filterCategoryInput?.value || "";
-    const minAmount = minExpenseAmountInput?.value === "" ? null : parseFloat(minExpenseAmountInput.value);
-    const maxAmount = maxExpenseAmountInput?.value === "" ? null : parseFloat(maxExpenseAmountInput.value);
-    const startDate = startExpenseDateInput?.value || "";
-    const endDate = endExpenseDateInput?.value || "";
-
-    return expenses.filter((expense) => {
-        const category = categories.find((c) => c.id === expense.category_id);
-        const description = normalizeText(expense.description || "Untitled");
-        const categoryName = normalizeText(category?.name || "Unknown");
-        const amountText = normalizeText(expense.amount);
-        const expenseDate = getLocalISODate(expense.date);
-
-        if (searchTerm) {
-            const matchesSearch =
-                description.includes(searchTerm) ||
-                categoryName.includes(searchTerm) ||
-                amountText.includes(searchTerm) ||
-                expenseDate.includes(searchTerm);
-
-            if (!matchesSearch) return false;
-        }
-
-        if (categoryId && String(expense.category_id) !== String(categoryId)) {
-            return false;
-        }
-
-        if (minAmount !== null && !Number.isNaN(minAmount) && expense.amount < minAmount) {
-            return false;
-        }
-
-        if (maxAmount !== null && !Number.isNaN(maxAmount) && expense.amount > maxAmount) {
-            return false;
-        }
-
-        if (startDate && expenseDate && expenseDate < startDate) {
-            return false;
-        }
-
-        if (endDate && expenseDate && expenseDate > endDate) {
-            return false;
-        }
-
-        return true;
-    });
-}
 
 function renderExpenses() {
     const tbody = expenseTableBody;
@@ -129,7 +61,7 @@ function renderExpenses() {
         return;
     }
 
-    const filteredExpenses = getFilteredExpenses();
+    const filteredExpenses = expenses.slice();
     tbody.innerHTML = "";
 
     let totalAmount = 0;
@@ -175,15 +107,6 @@ function renderExpenses() {
     if (amountEl) amountEl.textContent = `$${totalAmount.toFixed(2)}`;
 }
 
-function attachFilterListeners() {
-    searchExpenseInput?.addEventListener("input", renderExpenses);
-    filterCategoryInput?.addEventListener("change", renderExpenses);
-    minExpenseAmountInput?.addEventListener("input", renderExpenses);
-    maxExpenseAmountInput?.addEventListener("input", renderExpenses);
-    startExpenseDateInput?.addEventListener("change", renderExpenses);
-    endExpenseDateInput?.addEventListener("change", renderExpenses);
-}
-
 function populateCategorySelects() {
     const expenseCategories = categories.filter((c) => c.type === "expense");
 
@@ -198,11 +121,6 @@ function populateCategorySelects() {
                 expenseCategories.map((c) => `<option value="${c.id}">${c.name}</option>`).join("");
         }
     });
-
-    if (filterCategoryInput) {
-        filterCategoryInput.innerHTML = '<option value="">All Categories</option>' +
-            expenseCategories.map((c) => `<option value="${c.id}">${c.name}</option>`).join("");
-    }
 }
 
 function closeCreateModal() {
@@ -248,8 +166,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!requireAuth()) {
         return;
     }
-
-    attachFilterListeners();
     expenseTableBody?.addEventListener("click", onExpenseTableClick);
     confirmDeleteBtn?.addEventListener("click", handleConfirmDeleteExpense);
 
