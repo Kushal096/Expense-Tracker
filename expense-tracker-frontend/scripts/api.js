@@ -42,6 +42,7 @@ async function apiCall(endpoint, method = 'GET', body = null) {
     };
 
     const token = getAuthToken();
+
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
     }
@@ -56,19 +57,26 @@ async function apiCall(endpoint, method = 'GET', body = null) {
     }
 
     let response;
+
     try {
         response = await fetch(`${API_BASE_URL}${endpoint}`, options);
     } catch {
-        throw new Error('Network error. Unable to reach the server.');
+        throw new Error(
+            'Unable to connect to the server. Please check your internet connection and try again.'
+        );
     }
-    
+
     if (response.status === 401) {
         removeAuthToken();
         redirectToLogin();
-        throw new Error('Unauthorized');
+
+        throw new Error(
+            'Your session has expired. Please log in again to continue.'
+        );
     }
 
     let data;
+
     try {
         data = await response.json();
     } catch {
@@ -76,29 +84,49 @@ async function apiCall(endpoint, method = 'GET', body = null) {
     }
 
     if (!response.ok) {
-        const detail = typeof data?.detail === 'string' ? data.detail : '';
+
+        const detail =
+            typeof data?.detail === 'string'
+                ? data.detail
+                : '';
 
         if (detail) {
             throw new Error(detail);
         }
 
         if (response.status >= 500) {
-            throw new Error('Server error. Please try again in a moment.');
+            throw new Error(
+                'Something went wrong on the server. Please try again after a few moments.'
+            );
         }
 
         if (response.status === 404) {
-            throw new Error('Requested resource was not found.');
+            throw new Error(
+                'The requested data could not be found. Please refresh the page or try again later.'
+            );
         }
 
         if (response.status === 403) {
-            throw new Error('You do not have permission to perform this action.');
+            throw new Error(
+                'You do not have permission to perform this action. Please contact support if needed.'
+            );
         }
 
         if (response.status === 400) {
-            throw new Error('Invalid request. Please review your input and try again.');
+            throw new Error(
+                'Some information appears to be invalid. Please review your input and try again.'
+            );
         }
 
-        throw new Error('Request failed. Please try again.');
+        if (response.status === 429) {
+            throw new Error(
+                'Too many requests were made. Please wait a moment before trying again.'
+            );
+        }
+
+        throw new Error(
+            'Something unexpected happened. Please try again.'
+        );
     }
 
     return data;
@@ -116,3 +144,4 @@ function setupLogout() {
 }
 
 document.addEventListener('DOMContentLoaded', setupLogout);
+
