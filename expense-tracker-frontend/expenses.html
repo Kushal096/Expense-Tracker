@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html>
 
@@ -12,177 +13,537 @@
     <div class="logo">
       <h1>EXPENSE</h1>
     </div>
+
     <div class="nav" style="flex: 1;">
       <a href="dashboard.html">Dashboard</a>
       <a href="expenses.html" class="active">Expenses</a>
       <a href="income.html">Income</a>
-      <a href="login.html" id="logoutLink" style="margin-top: auto;">Logout</a>
+      <a href="login.html" id="logoutLink" style="margin-top: auto;">
+        Logout
+      </a>
     </div>
   </div>
 
   <div class="main">
+
     <div class="header-container">
+
       <div class="header-title">
         <h1>EXPENSES</h1>
         <div class="hr-line"></div>
       </div>
-      <button class="top-btn" id="addExpenseBtn">Add Expense &rarr;</button>
+
+      <button class="top-btn" id="addExpenseBtn">
+        Add Expense &rarr;
+      </button>
+
     </div>
 
     <div class="overview-card">
-      <small id="totalExpenseCount">Total Expenses (0)</small>
-      <h2 id="totalExpenseAmount">$0.00</h2>
+      <small id="totalExpenseCount">
+        Total Expenses (0)
+      </small>
+
+      <h2 id="totalExpenseAmount">
+        $0.00
+      </h2>
     </div>
 
     <div class="table-controls">
+
       <div class="search-bar">
-        <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
-          xmlns="http://www.w3.org/2000/svg">
+
+        <svg
+          class="search-icon"
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+
           <path
             d="M13.8427 13.8427C16.9248 10.7606 16.9248 5.76307 13.8427 2.68095C10.7606 -0.401168 5.76307 -0.401168 2.68095 2.68095C-0.401168 5.76307 -0.401168 10.7606 2.68095 13.8427C5.76307 16.9248 10.7606 16.9248 13.8427 13.8427ZM13.8427 13.8427L18.4239 18.4239"
-            stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            stroke="black"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+
         </svg>
-        <input type="text" id="searchExpenseInput" placeholder="Search expenses by title, category, or amount...">
+
+        <input
+          type="text"
+          id="searchExpenseInput"
+          placeholder="Search expenses by title, category, or amount..."
+        >
+
       </div>
 
       <div class="filters-row">
+
         <div class="filter-group">
+
           <label>Category</label>
-          <select class="filter-input" id="filterCategory">
-            <option value="">All Categories</option>
+
+          <select
+            class="filter-input"
+            id="filterCategory"
+          >
+            <option value="">
+              All Categories
+            </option>
           </select>
+
         </div>
 
         <div class="filter-group">
+
           <label>Amount Range</label>
+
           <div class="range-inputs">
-            <input type="number" class="filter-input italic" id="minExpenseAmount" placeholder="Min">
-            <input type="number" class="filter-input italic" id="maxExpenseAmount" placeholder="Max">
+
+            <input
+              type="number"
+              class="filter-input italic"
+              id="minExpenseAmount"
+              placeholder="Min"
+            >
+
+            <input
+              type="number"
+              class="filter-input italic"
+              id="maxExpenseAmount"
+              placeholder="Max"
+            >
+
           </div>
+
         </div>
 
         <div class="filter-group">
+
           <label>Date Range</label>
+
           <div class="range-inputs">
-            <input type="date" class="filter-input" id="startExpenseDate">
-            <input type="date" class="filter-input" id="endExpenseDate">
+
+            <input
+              type="date"
+              class="filter-input"
+              id="startExpenseDate"
+            >
+
+            <input
+              type="date"
+              class="filter-input"
+              id="endExpenseDate"
+            >
+
           </div>
+
         </div>
+
       </div>
+
     </div>
 
     <div class="data-table-container">
+
       <table class="data-table">
+
         <thead>
+
           <tr>
+
             <th>Title</th>
             <th>Category</th>
             <th>Amount</th>
             <th>Date</th>
             <th>Actions</th>
+
           </tr>
+
         </thead>
-        <tbody id="expenseTableBody">
-        </tbody>
+
+        <tbody id="expenseTableBody"></tbody>
+
       </table>
+
     </div>
+
   </div>
+
+  <!-- =========================
+       ADD EXPENSE MODAL
+  ========================== -->
 
   <div class="modal-overlay" id="expenseModal">
+
     <div class="modal-container">
+
       <div class="modal-header">
-        <h2 id="modalTitle">New Expense</h2>
+
+        <h2 id="modalTitle">
+          New Expense
+        </h2>
+
         <button class="close-btn" id="closeModalBtn">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M18 6L6 18" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            <path d="M6 6L18 18" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+
+            <path
+              d="M18 6L6 18"
+              stroke="black"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+
+            <path
+              d="M6 6L18 18"
+              stroke="black"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+
           </svg>
+
         </button>
+
       </div>
+
       <div class="modal-body">
+
+        <!-- TITLE -->
+
         <div class="form-group">
+
           <label>Title</label>
-          <input type="text" class="modal-input" id="title" placeholder="e.g. Grocery Shopping">
+
+          <input
+            type="text"
+            class="modal-input"
+            id="title"
+            placeholder="e.g. Grocery Shopping"
+          >
+
+          <!-- CATEGORY SUGGESTION -->
+
+          <div
+            id="suggestion-box"
+            class="suggestion-box"
+            style="display: none;"
+          >
+
+            <p>
+              Suggested Category:
+              <strong id="suggested-category"></strong>
+            </p>
+
+            <div class="suggestion-actions">
+
+              <button
+                type="button"
+                class="btn-accept"
+                onclick="acceptSuggestion()"
+              >
+                Accept
+              </button>
+
+              <button
+                type="button"
+                class="btn-reject"
+                onclick="rejectSuggestion()"
+              >
+                Reject
+              </button>
+
+            </div>
+
+          </div>
+
         </div>
+
+        <!-- AMOUNT -->
+
         <div class="form-group">
+
           <label>Amount</label>
-          <input type="number" class="modal-input" id="amount" placeholder="0.00">
+
+          <input
+            type="number"
+            class="modal-input"
+            id="amount"
+            placeholder="0.00"
+          >
+
         </div>
+
+        <!-- CATEGORY -->
+
         <div class="form-group">
+
           <label>Category</label>
-          <select class="modal-input" id="category"></select>
+
+          <select
+            class="modal-input"
+            id="category"
+          ></select>
+
         </div>
+
+        <!-- DATE -->
+
         <div class="form-group">
+
           <label>Date</label>
-          <input type="date" class="modal-input" id="date">
+
+          <input
+            type="date"
+            class="modal-input"
+            id="date"
+          >
+
         </div>
+
+        <!-- ACTIONS -->
+
         <div class="modal-actions">
-          <button class="btn-save" id="saveExpenseBtn">Save</button>
-          <button class="btn-cancel" id="cancelExpenseBtn">Cancel</button>
+
+          <button
+            class="btn-save"
+            id="saveExpenseBtn"
+          >
+            Save
+          </button>
+
+          <button
+            class="btn-cancel"
+            id="cancelExpenseBtn"
+          >
+            Cancel
+          </button>
+
         </div>
+
       </div>
+
     </div>
+
   </div>
+
+  <!-- EDIT EXPENSE MODAL -->
 
   <div class="modal-overlay" id="editExpenseModal">
+
     <div class="modal-container">
+
       <div class="modal-header">
-        <h2 id="editModalTitle">Edit Expense</h2>
+
+        <h2 id="editModalTitle">
+          Edit Expense
+        </h2>
+
         <button class="close-btn" id="closeEditModalBtn">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M18 6L6 18" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            <path d="M6 6L18 18" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+
+            <path
+              d="M18 6L6 18"
+              stroke="black"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+
+            <path
+              d="M6 6L18 18"
+              stroke="black"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+
           </svg>
+
         </button>
+
       </div>
+
       <div class="modal-body">
+
         <div class="form-group">
+
           <label>Title</label>
-          <input type="text" class="modal-input" id="editExpenseTitle" placeholder="e.g. Grocery Shopping">
+
+          <input
+            type="text"
+            class="modal-input"
+            id="editExpenseTitle"
+            placeholder="e.g. Grocery Shopping"
+          >
+
         </div>
+
         <div class="form-group">
+
           <label>Amount</label>
-          <input type="number" class="modal-input" id="editExpenseAmount" placeholder="0.00">
+
+          <input
+            type="number"
+            class="modal-input"
+            id="editExpenseAmount"
+            placeholder="0.00"
+          >
+
         </div>
+
         <div class="form-group">
+
           <label>Category</label>
-          <select class="modal-input" id="editExpenseCategory"></select>
+
+          <select
+            class="modal-input"
+            id="editExpenseCategory"
+          ></select>
+
         </div>
+
         <div class="form-group">
+
           <label>Date</label>
-          <input type="date" class="modal-input" id="editExpenseDate">
+
+          <input
+            type="date"
+            class="modal-input"
+            id="editExpenseDate"
+          >
+
         </div>
+
         <div class="modal-actions">
-          <button class="btn-save" id="updateExpenseBtn">Update</button>
-          <button class="btn-cancel" id="cancelEditExpenseBtn">Cancel</button>
+
+          <button
+            class="btn-save"
+            id="updateExpenseBtn"
+          >
+            Update
+          </button>
+
+          <button
+            class="btn-cancel"
+            id="cancelEditExpenseBtn"
+          >
+            Cancel
+          </button>
+
         </div>
+
       </div>
+
     </div>
+
   </div>
 
+  <!-- DELETE MODAL -->
+
   <div class="modal-overlay" id="confirmDeleteModal">
+
     <div class="modal-container delete-modal-container">
+
       <div class="modal-header">
-        <h2>Delete Expense</h2>
-        <button class="close-btn" id="closeDeleteModalBtn" aria-label="Close delete confirmation">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M18 6L6 18" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            <path d="M6 6L18 18" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+
+        <h2>
+          Delete Expense
+        </h2>
+
+        <button
+          class="close-btn"
+          id="closeDeleteModalBtn"
+          aria-label="Close delete confirmation"
+        >
+
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+
+            <path
+              d="M18 6L6 18"
+              stroke="black"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+
+            <path
+              d="M6 6L18 18"
+              stroke="black"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+
           </svg>
+
         </button>
+
       </div>
+
       <div class="modal-body delete-modal-body">
-        <p id="deleteMessageText" class="delete-modal-text">Delete this expense? This action cannot be undone.</p>
+
+        <p
+          id="deleteMessageText"
+          class="delete-modal-text"
+        >
+          Delete this expense? This action cannot be undone.
+        </p>
+
         <div class="modal-actions">
-          <button class="btn-save btn-danger" id="confirmDeleteBtn">Delete</button>
-          <button class="btn-cancel" id="cancelDeleteBtn">Cancel</button>
+
+          <button
+            class="btn-save btn-danger"
+            id="confirmDeleteBtn"
+          >
+            Delete
+          </button>
+
+          <button
+            class="btn-cancel"
+            id="cancelDeleteBtn"
+          >
+            Cancel
+          </button>
+
         </div>
+
       </div>
+
     </div>
+
   </div>
+
   <script src="scripts/api.js" defer></script>
   <script src="scripts/loading.js" defer></script>
   <script src="scripts/expenses.js" defer></script>
+
 </body>
 
 </html>
+```
