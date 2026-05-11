@@ -37,15 +37,18 @@ class LoadingManager {
 
 const loadingManager = new LoadingManager();
 
-function showNotification(message, type = 'info', duration = 3000) {
+function showNotification(message, type = 'info', duration = 4000) {
     const notification = document.createElement('div');
+
     notification.className = `notification notification-${type}`;
+
     notification.textContent = message;
 
     document.body.appendChild(notification);
 
     setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease-in-out';
+
         setTimeout(() => notification.remove(), 300);
     }, duration);
 
