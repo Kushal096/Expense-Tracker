@@ -1,64 +1,138 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Dashboard - Expense App</title>
+
   <link rel="stylesheet" href="styles/dashboard.css">
+  <link rel="stylesheet" href="styles/loading.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js" defer></script>
+
+  <!-- Scripts -->
   <script src="scripts/api.js" defer></script>
+  <script src="scripts/loading.js" defer></script>
   <script src="scripts/dashboard.js" defer></script>
 </head>
+
 <body>
+
+  <!-- SIDEBAR -->
   <div class="sidebar">
+
     <div class="logo">
-      <h1>EXPENSE</h1>
+      <h1>DASHBOARD</h1>
     </div>
+
     <div class="nav" style="flex: 1;">
       <a href="dashboard.html" class="active">Dashboard</a>
       <a href="expenses.html">Expenses</a>
       <a href="income.html">Income</a>
-      <a href="login.html" id="logoutLink" style="margin-top: auto;">Logout</a>
+      <a href="login.html" id="logoutLink" style="margin-top: auto;">
+        Logout
+      </a>
     </div>
+
   </div>
 
+  <!-- MAIN CONTENT -->
   <div class="main">
+
+    <!-- HEADER -->
     <div class="header-container">
       <h1>DASHBOARD</h1>
       <div class="divider"></div>
     </div>
 
+    <!-- OVERVIEW -->
     <div class="financial-overview-container">
-      <div class="overview-header">FINANCIAL OVERVIEW</div>
-      <div class="overview-cards">
-        <div class="card-item">
-          <small>TOTAL BALANCE</small>
-          <h2>$0.00</h2>
-          <span class="trend">0.0%</span>
-        </div>
-        <div class="card-item">
-          <small>TOTAL EXPENSE</small>
-          <h2>$0.00</h2>
-          <span class="trend">0.0%</span>
-        </div>
-        <div class="card-item">
-          <small>TOTAL INCOME</small>
-          <h2>$0.00</h2>
-          <span class="trend">0.0%</span>
-        </div>
-        <div class="card-item no-border">
-          <small>MONTHLY SAVINGS</small>
-          <h2>$0.00</h2>
-          <span class="trend">0.0%</span>
-        </div>
+
+      <div class="overview-header">
+        FINANCIAL OVERVIEW
       </div>
+
+      <div class="overview-cards">
+
+        <div class="card-item">
+          <small>MONTHLY BALANCE</small>
+          <h2>$0.00</h2>
+        </div>
+
+        <div class="card-item">
+          <small>MONTHLY EXPENSE</small>
+          <h2>$0.00</h2>
+        </div>
+
+        <div class="card-item">
+          <small>MONTHLY INCOME</small>
+          <h2>$0.00</h2>
+        </div>
+
+        <div class="card-item no-border">
+          <small>TOTAL SAVINGS</small>
+          <h2>$0.00</h2>
+        </div>
+
+      </div>
+
     </div>
 
-    <div class="transactions-section">
-      <div class="transactions-header">
-        <h2 class="section-title">RECENT TRANSACTIONS</h2>
-        <a href="expenses.html" class="view-all" id="viewAllLink">View All &rarr;</a>
+    <!-- CHARTS -->
+    <div class="charts-grid">
+
+      <!-- Trends -->
+      <div class="chart-card">
+
+        <div class="chart-header">
+          <h2>Monthly Trends</h2>
+        </div>
+
+        <div class="chart-container">
+          <canvas id="trendsChart"></canvas>
+        </div>
+
       </div>
 
+      <!-- Categories -->
+      <div class="chart-card">
+
+        <div class="chart-header">
+          <h2>Expense Categories</h2>
+        </div>
+
+        <div class="chart-container pie-chart-container">
+          <canvas id="categoryChart"></canvas>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div class="transactions-section">
+
+      <div class="transactions-header">
+
+        <h2 class="section-title">
+          RECENT TRANSACTIONS
+        </h2>
+
+        <a href="expenses.html"
+          class="view-all"
+          id="viewAllLink">
+
+          View All &rarr;
+
+        </a>
+
+      </div>
+
+      <!-- TABLE -->
       <div class="table-container">
+
         <table>
+
           <thead>
             <tr>
               <th>TITLE</th>
@@ -67,12 +141,43 @@
               <th>DATE</th>
             </tr>
           </thead>
+
           <tbody>
-            <!-- Dynamic data will be inserted here -->
           </tbody>
+
         </table>
+
       </div>
+
+      <!-- PAGINATION -->
+      <div class="pagination-controls">
+
+        <button
+          type="button"
+          id="prevTransactionsPage">
+
+          Previous
+
+        </button>
+
+        <div id="transactionsPageInfo">
+          Page 1 of 1
+        </div>
+
+        <button
+          type="button"
+          id="nextTransactionsPage">
+
+          Next
+
+        </button>
+
+      </div>
+
     </div>
+
   </div>
+
 </body>
+
 </html>

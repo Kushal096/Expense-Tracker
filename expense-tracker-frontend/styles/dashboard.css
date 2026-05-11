@@ -274,3 +274,150 @@ tr:last-child td { border-bottom: none; }
   font-size: 12px;
   color: #666;
 }
+/* =========================
+   CHART SECTION
+========================= */
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-bottom: 64px;
+}
+
+.chart-card {
+  border: 2px solid black;
+  background: white;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: black;
+}
+
+.chart-header {
+  margin-bottom: 24px;
+}
+
+.chart-header h2 {
+  margin: 0;
+  font-family: 'Playfair Display', serif;
+  font-size: 32px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 350px;
+}
+
+.pie-chart-container {
+  height: 400px;
+}
+
+/* EMPTY STATE */
+
+.empty-chart-state {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  color: #999;
+  font-size: 14px;
+  border: 2px dashed #ccc;
+}
+
+/* PAGINATION */
+
+.pagination-controls {
+  margin-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pagination-controls button {
+  border: 2px solid black;
+  background: white;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  transition: 0.2s;
+}
+
+.pagination-controls button:hover {
+  background: black;
+  color: white;
+}
+
+.pagination-controls button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+#transactionsPageInfo {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1100px) {
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .overview-cards {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .card-item {
+    border-right: none;
+    border-bottom: 2px solid white;
+    padding-bottom: 24px;
+  }
+
+  .card-item.no-border {
+    margin-left: 0;
+    border-bottom: none;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .main {
+    padding: 24px;
+  }
+
+  .header-container h1 {
+    font-size: 56px;
+  }
+
+  .chart-container {
+    height: 280px;
+  }
+
+  .pie-chart-container {
+    height: 320px;
+  }
+
+  th,
+  td {
+    padding: 12px;
+  }
+}
