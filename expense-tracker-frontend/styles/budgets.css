@@ -1,0 +1,34 @@
+.status-pill {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.status-on-track {
+  background-color: #e6f4ea;
+  color: #1e8e3e;
+  border: 1px solid #1e8e3e;
+}
+
+.status-near-limit {
+  background-color: #fef7e0;
+  color: #f29900;
+  border: 1px solid #f29900;
+}
+
+.status-exceeded {
+  background-color: #fce8e6;
+  color: #d93025;
+  border: 1px solid #d93025;
+}
+
+/* Adjust filters row for budgets */
+.filters-row {
+  height: auto;
+}
