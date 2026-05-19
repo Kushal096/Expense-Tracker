@@ -20,12 +20,14 @@ from app.schemas.dashboard import (
     CategoriesResponse,
     RecentTransactionsResponse,
 )
+from app.schemas.analytics_schema import FinancialScore
 from app.services.dashboard_service import (
     get_summary,
     get_trends,
     get_categories,
     get_recent_transactions,
 )
+from app.services.analytics_service import AnalyticsService
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
@@ -110,3 +112,24 @@ def read_recent_transactions(
     """
     user_id = extract_user_id(current_user)
     return get_recent_transactions(db, user_id, skip=skip, limit=limit)
+
+@router.get(
+    "/insights",
+    response_model=FinancialScore,
+    summary="Get financial insights",
+    description="Returns AI-generated insights and recommendations based on financial score."
+)
+def read_insights(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+) -> FinancialScore:
+    """Fetch financial insights for the current user.
+    
+    Includes:
+    - Overall financial health score (0-100)
+    - Component scores (savings rate, expense stability, budget adherence, income stability)
+    - Key insights about financial health
+    - Actionable recommendations for improvement
+    """
+    user_id = extract_user_id(current_user)
+    return AnalyticsService.get_financial_score(db, user_id)
