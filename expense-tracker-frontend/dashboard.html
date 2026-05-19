@@ -1,14 +1,19 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Dashboard - Expense App</title>
   <link rel="stylesheet" href="styles/dashboard.css">
+  <link rel="stylesheet" href="styles/chatbox.css">
   <link rel="stylesheet" href="styles/loading.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js" defer></script>
   <script src="scripts/api.js" defer></script>
   <script src="scripts/loading.js" defer></script>
+  <script src="scripts/chatbox.js" defer></script>
   <script src="scripts/dashboard.js" defer></script>
 </head>
+
 <body>
   <div class="sidebar">
     <div class="logo">
@@ -18,13 +23,20 @@
       <a href="dashboard.html" class="active">Dashboard</a>
       <a href="expenses.html">Expenses</a>
       <a href="income.html">Income</a>
+      <a href="budgets.html">Budgets</a>
+      <a href="recurring.html">Recurring</a>
       <a href="login.html" id="logoutLink" style="margin-top: auto;">Logout</a>
     </div>
   </div>
 
   <div class="main">
     <div class="header-container">
-      <h1>DASHBOARD</h1>
+      <div class = "header-top">
+        <h1>DASHBOARD</h1>
+        <div id="aiAssistantTrigger" title="Open AI Assistant" role="button" tabindex="0" aria-label="Open AI Assistant">
+          <i class="fa-brands fa-bots"></i>
+        </div>
+      </div>
       <div class="divider"></div>
     </div>
 
@@ -66,19 +78,176 @@
     </div>
 
     <!-- AI INSIGHTS CARD -->
-<div class="insights-card">
-  <div class="insights-header">
-    <h2>AI INSIGHTS</h2>
+    <div class="insights-card">
+      <div class="insights-header">
+        <h2>AI INSIGHTS & RECOMMENDATIONS</h2>
+        <button id="refreshInsightsBtn">Refresh Insights</button>
+      </div>
 
-    <button id="refreshInsightsBtn">
-      Refresh Insights
-    </button>
-  </div>
+      <div class="insights-content">
+        <div class="insights-summary">
+          <div class="insights-summary-header">AI SUMMARY</div>
+          <p id="aiSummaryText">Loading the latest financial summary from the backend...</p>
+        </div>
 
-  <div id="insightsContent">
-    Loading insights...
-  </div>
-</div>
+        <div class="financial-score-section">
+          <div class="score-display">
+            <div class="score-circle">
+              <div class="score-number" id="financialScoreValue">0</div>
+              <div class="score-label">Score</div>
+            </div>
+          </div>
+          <div class="score-details">
+            <div class="score-component">
+              <span class="component-label">Savings Rate</span>
+              <div class="component-bar">
+                <div class="component-fill" id="savingsRateBar" style="width: 0%"></div>
+              </div>
+              <span class="component-value" id="savingsRateValue">0%</span>
+            </div>
+            <div class="score-component">
+              <span class="component-label">Expense Stability</span>
+              <div class="component-bar">
+                <div class="component-fill" id="expenseStabilityBar" style="width: 0%"></div>
+              </div>
+              <span class="component-value" id="expenseStabilityValue">0%</span>
+            </div>
+            <div class="score-component">
+              <span class="component-label">Budget Adherence</span>
+              <div class="component-bar">
+                <div class="component-fill" id="budgetAdherenceBar" style="width: 0%"></div>
+              </div>
+              <span class="component-value" id="budgetAdherenceValue">0%</span>
+            </div>
+            <div class="score-component">
+              <span class="component-label">Income Stability</span>
+              <div class="component-bar">
+                <div class="component-fill" id="incomeStabilityBar" style="width: 0%"></div>
+              </div>
+              <span class="component-value" id="incomeStabilityValue">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="insights-text-section">
+          <div class="insights-list">
+            <div class="insights-header-small">KEY INSIGHTS</div>
+            <ul id="insightsList" class="insights-items"></ul>
+          </div>
+
+          <div class="recommendations-list">
+            <div class="recommendations-header-small">RECOMMENDATIONS</div>
+            <ul id="recommendationsList" class="recommendations-items"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="analytics-controls">
+      <div class="controls-header">
+        <h3>CUSTOMIZE ANALYTICS</h3>
+        <p>Adjust timeframes and filters to analyze your data</p>
+      </div>
+
+      <div class="controls-grid">
+        <div class="control-group">
+          <label for="savingsTrendsMonths">Savings Trends (Months)</label>
+          <select id="savingsTrendsMonths">
+            <option value="3">Last 3 Months</option>
+            <option value="6">Last 6 Months</option>
+            <option value="12" selected>Last 12 Months</option>
+            <option value="24">Last 24 Months</option>
+            <option value="36">Last 36 Months</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label for="cashflowMonths">Cashflow Analysis (Months)</label>
+          <select id="cashflowMonths">
+            <option value="1">Last 1 Month</option>
+            <option value="2">Last 2 Months</option>
+            <option value="3" selected>Last 3 Months</option>
+            <option value="6">Last 6 Months</option>
+            <option value="12">Last 12 Months</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label for="dashboardPeriod">Dashboard Period</label>
+          <select id="dashboardPeriod">
+            <option value="monthly" selected>This Month</option>
+            <option value="quarterly">This Quarter</option>
+            <option value="yearly">This Year</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label>&nbsp;</label>
+          <button id="applyAnalyticsBtn" class="apply-btn">Apply Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="analytics-grid">
+      <div class="chart-card">
+        <h3 id="savingsTrendsTitle">SAVINGS TRENDS (12 MONTHS)</h3>
+        <div class="chart-wrapper">
+          <canvas id="savingsTrendsChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h3 id="cashflowTitle">CASHFLOW ANALYSIS (3 MONTHS)</h3>
+        <div class="chart-wrapper">
+          <canvas id="cashflowChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="metrics-cards">
+      <div class="metric-card">
+        <div class="metric-label">TOTAL TRANSACTIONS</div>
+        <div class="metric-value" id="totalTransactionsMetric">0</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">AVG DAILY SPENDING</div>
+        <div class="metric-value" id="avgDailySpendingMetric">$0.00</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">AVG TRANSACTION</div>
+        <div class="metric-value" id="avgTransactionMetric">$0.00</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">CURRENT MONTH SAVINGS RATE</div>
+        <div class="metric-value" id="savingsRateMetric">0%</div>
+      </div>
+    </div>
+
+    <div class="budgets-analysis-section" style="margin-bottom: 64px;">
+      <h2 class="section-title">BUDGETS ANALYSIS</h2>
+      <div class="metrics-cards" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="metric-card">
+          <div class="metric-label">BUDGETS MET</div>
+          <div class="metric-value" id="budgetsMetMetric">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">BUDGETS EXCEEDED</div>
+          <div class="metric-value" id="budgetsExceededMetric">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">OVERALL BUDGET UTILIZATION</div>
+          <div class="metric-value" id="budgetUtilizationMetric">0%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="top-categories-section">
+      <h2 class="section-title">TOP SPENDING CATEGORIES</h2>
+      <div class="categories-grid" id="topCategoriesGrid"></div>
+    </div>
 
     <div class="transactions-section">
       <div class="transactions-header">
@@ -109,4 +278,5 @@
     </div>
   </div>
 </body>
+
 </html>

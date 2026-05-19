@@ -9,6 +9,13 @@ const closeEditModalBtn = document.getElementById("closeEditModalBtn");
 const cancelEditIncomeBtn = document.getElementById("cancelEditIncomeBtn");
 const updateIncomeBtn = document.getElementById("updateIncomeBtn");
 
+const searchIncomeInput = document.getElementById("searchIncomeInput");
+const filterCategoryInput = document.getElementById("filterCategory");
+const minIncomeAmountInput = document.getElementById("minIncomeAmount");
+const maxIncomeAmountInput = document.getElementById("maxIncomeAmount");
+const startIncomeDateInput = document.getElementById("startIncomeDate");
+const endIncomeDateInput = document.getElementById("endIncomeDate");
+
 const incomeTableBody = document.getElementById("incomeTableBody") || document.querySelector(".data-table tbody");
 
 const confirmDeleteModal = document.getElementById("confirmDeleteModal");
@@ -71,7 +78,78 @@ function getReadableErrorMessage(error, fallbackMessage) {
 
     return raw;
 }
-// Filtering UI removed: always show all incomes.
+
+function getLocalISODate(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+function normalizeText(value) {
+    return String(value ?? "").toLowerCase().trim();
+}
+
+function attachFilterListeners() {
+    searchIncomeInput?.addEventListener("input", renderIncomes);
+    filterCategoryInput?.addEventListener("change", renderIncomes);
+    minIncomeAmountInput?.addEventListener("input", renderIncomes);
+    maxIncomeAmountInput?.addEventListener("input", renderIncomes);
+    startIncomeDateInput?.addEventListener("change", renderIncomes);
+    endIncomeDateInput?.addEventListener("change", renderIncomes);
+}
+
+function getFilteredIncomes() {
+    const searchTerm = normalizeText(searchIncomeInput?.value);
+    const categoryId = filterCategoryInput?.value || "";
+    const minAmount = minIncomeAmountInput?.value === "" ? null : parseFloat(minIncomeAmountInput.value);
+    const maxAmount = maxIncomeAmountInput?.value === "" ? null : parseFloat(maxIncomeAmountInput.value);
+    const startDate = startIncomeDateInput?.value || "";
+    const endDate = endIncomeDateInput?.value || "";
+
+    return incomes.filter((income) => {
+        const category = categories.find((c) => c.id === income.category_id);
+        const title = normalizeText(income.title || income.source || "Income");
+        const categoryName = normalizeText(category?.name || "Unknown");
+        const amountText = normalizeText(income.amount);
+        const incomeDate = getLocalISODate(income.date);
+
+        if (searchTerm) {
+            const matchesSearch =
+                title.includes(searchTerm) ||
+                categoryName.includes(searchTerm) ||
+                amountText.includes(searchTerm) ||
+                incomeDate.includes(searchTerm);
+
+            if (!matchesSearch) return false;
+        }
+
+        if (categoryId && String(income.category_id) !== String(categoryId)) {
+            return false;
+        }
+
+        if (minAmount !== null && !Number.isNaN(minAmount) && income.amount < minAmount) {
+            return false;
+        }
+
+        if (maxAmount !== null && !Number.isNaN(maxAmount) && income.amount > maxAmount) {
+            return false;
+        }
+
+        if (startDate && incomeDate && incomeDate < startDate) {
+            return false;
+        }
+
+        if (endDate && incomeDate && incomeDate > endDate) {
+            return false;
+        }
+
+        return true;
+    });
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
     if (!requireAuth()) {
@@ -148,7 +226,7 @@ function renderIncomes() {
         return;
     }
     
-    const filteredIncomes = incomes.slice();
+    const filteredIncomes = getFilteredIncomes();
     tbody.innerHTML = "";
         
     let totalAmount = 0;
