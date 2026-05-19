@@ -20,3 +20,5 @@ class Category(Base):
 
     expenses = relationship("Expense", back_populates="category")
     incomes = relationship("Income", back_populates="category")
+    budgets = relationship("Budget", back_populates="category")
+    recurring_transactions = relationship("RecurringTransaction", back_populates="category")
