@@ -51,31 +51,6 @@ def _get_current_month_bounds() -> tuple[datetime, datetime]:
     return month_start, month_end
 
 
-def _get_previous_month_bounds() -> tuple[datetime, datetime]:
-    """Get start and end datetime for previous month.
-    
-    Returns:
-        (month_start, month_end) in UTC
-    """
-    now = datetime.now(timezone.utc)
-    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    prev_month_end = month_start - timedelta(seconds=1)
-    prev_month_start = prev_month_end.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    return prev_month_start, prev_month_end
-
-
-def _get_total_income(db: Session, user_id: int) -> float:
-    """Get total income for user (all time)."""
-    result = db.query(func.sum(Income.amount)).filter(Income.user_id == user_id).scalar()
-    return float(result) if result else 0.0
-
-
-def _get_total_expense(db: Session, user_id: int) -> float:
-    """Get total expense for user (all time)."""
-    result = db.query(func.sum(Expense.amount)).filter(Expense.user_id == user_id).scalar()
-    return float(result) if result else 0.0
-
-
 def _get_monthly_income(db: Session, user_id: int, month_start: datetime, month_end: datetime) -> float:
     """Get total income for user in a specific month."""
     result = (

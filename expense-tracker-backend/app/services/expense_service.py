@@ -14,6 +14,8 @@ Example:
         expenses = get_expenses_by_user(db, user_id=1)
 """
 
+from datetime import date, datetime
+
 from sqlalchemy.orm import Session
 from app.models.expense_models import Expense
 from app.schemas.expense_schema import ExpenseBase, ExpenseResponse
@@ -22,6 +24,25 @@ from app.core.category_validation import get_valid_category
 
 # Initialize CRUD service for expenses
 _crud_service = BaseCRUDService(Expense, ExpenseResponse)
+
+
+def _extract_month_year(date_value) -> tuple[int, int]:
+    if isinstance(date_value, datetime):
+        return date_value.month, date_value.year
+    if isinstance(date_value, date):
+        return date_value.month, date_value.year
+    if isinstance(date_value, str):
+        parsed = datetime.fromisoformat(date_value[:10]).date()
+        return parsed.month, parsed.year
+
+    raise ValueError("Invalid expense date value")
+
+
+def _refresh_budget_spending(db: Session, user_id: int, month: int, year: int, category_id: int):
+    from app.services import budget_service
+
+    budget_service.update_budget_spent_amount(db, user_id, month, year, category_id)
+    budget_service.update_budget_spent_amount(db, user_id, month, year, None)
 
 
 def create_expense(db: Session, expense_data: ExpenseBase, user_id: int) -> ExpenseResponse:
@@ -46,7 +67,12 @@ def create_expense(db: Session, expense_data: ExpenseBase, user_id: int) -> Expe
     """
     # Validate category exists and is of type "expense"
     get_valid_category(db, expense_data.category_id, "expense")
-    return _crud_service.create(db, expense_data, user_id)
+    created_expense = _crud_service.create(db, expense_data, user_id)
+
+    month, year = _extract_month_year(created_expense.date)
+    _refresh_budget_spending(db, user_id, month, year, created_expense.category_id)
+
+    return created_expense
 
 
 def get_expenses_by_user(db: Session, user_id: int) -> list[ExpenseResponse]:
@@ -109,7 +135,35 @@ def update_expense(
     """
     # Validate category exists and is of type "expense"
     get_valid_category(db, expense_data.category_id, "expense")
-    return _crud_service.update(db, expense_id, expense_data, user_id)
+
+    existing_expense = db.query(Expense).filter(
+        Expense.id == expense_id,
+        Expense.user_id == user_id,
+    ).first()
+    if not existing_expense:
+        return None
+
+    old_month, old_year = _extract_month_year(existing_expense.date)
+    old_category_id = existing_expense.category_id
+
+    updated_expense = _crud_service.update(db, expense_id, expense_data, user_id)
+    if not updated_expense:
+        return None
+
+    new_month, new_year = _extract_month_year(updated_expense.date)
+    new_category_id = updated_expense.category_id
+
+    _refresh_budget_spending(db, user_id, old_month, old_year, old_category_id)
+
+    period_or_category_changed = (
+        old_month != new_month
+        or old_year != new_year
+        or old_category_id != new_category_id
+    )
+    if period_or_category_changed:
+        _refresh_budget_spending(db, user_id, new_month, new_year, new_category_id)
+
+    return updated_expense
 
 
 def delete_expense(db: Session, expense_id: int, user_id: int) -> bool:
@@ -127,4 +181,19 @@ def delete_expense(db: Session, expense_id: int, user_id: int) -> bool:
         - Deletion is immediately committed to the database.
         - Once deleted, the expense cannot be recovered.
     """
-    return _crud_service.delete(db, expense_id, user_id)
+    existing_expense = db.query(Expense).filter(
+        Expense.id == expense_id,
+        Expense.user_id == user_id,
+    ).first()
+    if not existing_expense:
+        return False
+
+    month, year = _extract_month_year(existing_expense.date)
+    category_id = existing_expense.category_id
+
+    deleted = _crud_service.delete(db, expense_id, user_id)
+    if not deleted:
+        return False
+
+    _refresh_budget_spending(db, user_id, month, year, category_id)
+    return True
