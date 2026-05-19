@@ -1,33 +1,34 @@
-"""Authentication dependencies shared by protected routes.
-
-Frontend should send JWT in header:
-`Authorization: Bearer <access_token>`.
-"""
-
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.services.auth_service import verify_token
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+# ✅ SIMPLE BEARER (NO OAUTH UI)
+security = HTTPBearer()
 
 
-def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
-    """Resolve and validate JWT payload from bearer token.
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
+    """Validate JWT from Authorization: Bearer <token>"""
+    token = credentials.credentials
 
-    Returns decoded token payload when valid.
-    Raises 401 when token is invalid or expired.
-    """
     payload = verify_token(token)
+
     if not payload or payload.get("user_id") is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials"
+        )
+
     return payload
 
+
 def extract_user_id(current_user: dict) -> int:
-    """Extract user id from decoded JWT payload or raise 401."""
+    """Extract user_id from JWT payload"""
     user_id = current_user.get("user_id")
+
     if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials",
         )
+
     return int(user_id)
