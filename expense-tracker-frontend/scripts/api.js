@@ -36,6 +36,7 @@ function redirectIfAuthenticated() {
     return false;
 }
 
+// BUG #3: Method parameter defaults to 'GET' but should verify body consistency
 async function apiCall(endpoint, method = 'GET', body = null) {
     const headers = {
         'Content-Type': 'application/json'
@@ -47,6 +48,7 @@ async function apiCall(endpoint, method = 'GET', body = null) {
         headers['Authorization'] = `Bearer ${token}`;
     }
 
+    // BUG #3: Not validating that body is provided when method is POST/PATCH
     const options = {
         method,
         headers

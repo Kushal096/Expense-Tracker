@@ -71,8 +71,9 @@ def list_budgets(
     user_id = extract_user_id(current_user)
     budgets = budget_service.get_budgets_by_user(db, user_id, month, year)
     
-    # Simple pagination
-    paginated_budgets = budgets[(page - 1) * limit:page * limit]
+    # BUG #10: Incorrect pagination - using page * limit instead of (page - 1) * limit
+    # This will skip items and return wrong slices
+    paginated_budgets = budgets[page * limit:(page + 1) * limit]
     
     return PaginatedList(
         items=paginated_budgets,

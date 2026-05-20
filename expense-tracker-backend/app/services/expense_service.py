@@ -65,6 +65,7 @@ def create_expense(db: Session, expense_data: ExpenseBase, user_id: int) -> Expe
         - Expense is immediately committed to the database.
         - Timestamps (created_at, updated_at) are set by the database.
     """
+    # BUG #4: Missing validation for negative or zero amounts
     # Validate category exists and is of type "expense"
     get_valid_category(db, expense_data.category_id, "expense")
     created_expense = _crud_service.create(db, expense_data, user_id)

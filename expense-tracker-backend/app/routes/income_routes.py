@@ -77,9 +77,10 @@ def update_existing_income(
     return updated_income
 
 
+# BUG #5: DELETE should return 204_NO_CONTENT, not 200_OK
 @router.delete(
     "/{income_id}",
-    status_code=status.HTTP_200_OK,
+    status_code=status.HTTP_200_OK,  # BUG #5: Should be status.HTTP_204_NO_CONTENT
     summary="Delete an income",
     description="Deletes an existing income record by ID for the authenticated user.",
 )
