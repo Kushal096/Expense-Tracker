@@ -9,6 +9,11 @@ const closeEditModalBtn = document.getElementById("closeEditModalBtn");
 const cancelEditExpenseBtn = document.getElementById("cancelEditExpenseBtn");
 const updateExpenseBtn = document.getElementById("updateExpenseBtn");
 
+const confirmDeleteModal = document.getElementById("confirmDeleteModal");
+const closeDeleteModalBtn = document.getElementById("closeDeleteModalBtn");
+const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+
 const searchExpenseInput = document.getElementById("searchExpenseInput");
 const filterCategoryInput = document.getElementById("filterCategory");
 const minExpenseAmountInput = document.getElementById("minExpenseAmount");
@@ -19,6 +24,7 @@ const endExpenseDateInput = document.getElementById("endExpenseDate");
 let expenses = [];
 let categories = [];
 let editingExpenseId = null;
+let pendingDeleteExpenseId = null;
 
 function getLocalISODate(value) {
     const date = new Date(value);
@@ -114,7 +120,7 @@ function renderExpenses() {
                 <td>${new Date(expense.date).toLocaleDateString()}</td>
                 <td class="actions">
                     <svg onclick="openEditModal(${expense.id})" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit" style="cursor: pointer; margin-right: 8px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    <svg onclick="deleteExpense(event, ${expense.id})" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2" style="cursor: pointer; color: red;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    <svg onclick="openDeleteExpenseModal(${expense.id})" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2" style="cursor: pointer; color: red;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -177,9 +183,20 @@ cancelExpenseBtn?.addEventListener("click", closeCreateModal);
 closeEditModalBtn?.addEventListener("click", closeEditModal);
 cancelEditExpenseBtn?.addEventListener("click", closeEditModal);
 
+closeDeleteModalBtn?.addEventListener("click", closeDeleteModal);
+cancelDeleteBtn?.addEventListener("click", closeDeleteModal);
+confirmDeleteBtn?.addEventListener("click", handleConfirmDeleteExpense);
+
+function closeDeleteModal() {
+    if (confirmDeleteBtn && confirmDeleteBtn.disabled) return;
+    if (confirmDeleteModal) confirmDeleteModal.style.display = "none";
+    pendingDeleteExpenseId = null;
+}
+
 window.addEventListener("click", (e) => {
     if (e.target === expenseModal) closeCreateModal();
     if (e.target === editExpenseModal) closeEditModal();
+    if (e.target === confirmDeleteModal) closeDeleteModal();
 });
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -277,27 +294,31 @@ async function executeEditExpense(e) {
 
 if (updateExpenseBtn) updateExpenseBtn.addEventListener("click", executeEditExpense);
 
-async function deleteExpense(event, id) {
-    if (!confirm("Are you sure you want to delete this expense?")) return;
+function openDeleteExpenseModal(id) {
+    const expense = expenses.find((e) => e.id === id);
+    if (!expense) return;
 
-    const deleteButton = event?.target?.closest('svg');
-    if (deleteButton) {
-        deleteButton.style.pointerEvents = 'none';
-        deleteButton.style.opacity = '0.5';
+    pendingDeleteExpenseId = id;
+
+    if (confirmDeleteModal) {
+        confirmDeleteModal.style.display = "flex";
     }
+}
+
+async function handleConfirmDeleteExpense() {
+    if (!pendingDeleteExpenseId) return;
+    if (!confirmDeleteBtn || confirmDeleteBtn.disabled) return;
+
+    const deletingId = pendingDeleteExpenseId;
 
     try {
-        await apiCall(`/expenses/${id}`, 'DELETE');
-        expenses = expenses.filter((e) => e.id !== id);
+        await apiCall(`/expenses/${deletingId}`, 'DELETE');
+        expenses = expenses.filter((e) => e.id !== deletingId);
+        closeDeleteModal();
         renderExpenses();
         showNotification('Expense deleted successfully!', 'success');
     } catch (error) {
         showNotification("Failed to delete expense: " + error.message, 'error');
         console.error("Error deleting expense:", error);
-
-        if (deleteButton) {
-            deleteButton.style.pointerEvents = 'auto';
-            deleteButton.style.opacity = '1';
-        }
     }
 }
