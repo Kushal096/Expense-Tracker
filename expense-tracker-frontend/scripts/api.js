@@ -36,8 +36,18 @@ function redirectIfAuthenticated() {
     return false;
 }
 
-// BUG #3: Method parameter defaults to 'GET' but should verify body consistency
 async function apiCall(endpoint, method = 'GET', body = null) {
+    const normalizedMethod = String(method || 'GET').toUpperCase();
+    const requiresBody = normalizedMethod === 'POST' || normalizedMethod === 'PATCH' || normalizedMethod === 'PUT';
+
+    if (requiresBody && body == null) {
+        throw new Error(`Request body is required for ${normalizedMethod} requests.`);
+    }
+
+    if ((normalizedMethod === 'GET' || normalizedMethod === 'HEAD') && body != null) {
+        throw new Error(`Request body is not allowed for ${normalizedMethod} requests.`);
+    }
+
     const headers = {
         'Content-Type': 'application/json'
     };
@@ -48,9 +58,8 @@ async function apiCall(endpoint, method = 'GET', body = null) {
         headers['Authorization'] = `Bearer ${token}`;
     }
 
-    // BUG #3: Not validating that body is provided when method is POST/PATCH
     const options = {
-        method,
+        method: normalizedMethod,
         headers
     };
 

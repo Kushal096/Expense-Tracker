@@ -73,7 +73,6 @@ function getFilteredExpenses() {
             return false;
         }
 
-        // BUG #2: Using > instead of >=, excludes expenses equal to max amount
         if (maxAmount !== null && !Number.isNaN(maxAmount) && expense.amount > maxAmount) {
             return false;
         }
@@ -112,10 +111,9 @@ function renderExpenses() {
             totalAmount += Number(expense.amount) || 0;
             const category = categories.find((c) => c.id === expense.category_id);
             const tr = document.createElement("tr");
-            // BUG #6: Missing null check - category.name could crash if category is undefined
             tr.innerHTML = `
                 <td>${expense.description || 'Untitled'}</td>
-                <td>${category.name}</td>
+                <td>${category?.name || 'Unknown'}</td>
                 <td>$${Number(expense.amount).toFixed(2)}</td>
                 <td>${new Date(expense.date).toLocaleDateString()}</td>
                 <td class="actions">

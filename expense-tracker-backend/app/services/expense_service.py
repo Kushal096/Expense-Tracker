@@ -16,6 +16,7 @@ Example:
 
 from datetime import date, datetime
 
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from app.models.expense_models import Expense
 from app.schemas.expense_schema import ExpenseBase, ExpenseResponse
@@ -65,7 +66,12 @@ def create_expense(db: Session, expense_data: ExpenseBase, user_id: int) -> Expe
         - Expense is immediately committed to the database.
         - Timestamps (created_at, updated_at) are set by the database.
     """
-    # BUG #4: Missing validation for negative or zero amounts
+    if expense_data.amount <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Expense amount must be greater than zero",
+        )
+
     # Validate category exists and is of type "expense"
     get_valid_category(db, expense_data.category_id, "expense")
     created_expense = _crud_service.create(db, expense_data, user_id)
@@ -134,6 +140,12 @@ def update_expense(
         - The updated_at timestamp is automatically updated by the database.
         - Returns None if expense doesn't exist or doesn't belong to user.
     """
+    if expense_data.amount <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Expense amount must be greater than zero",
+        )
+
     # Validate category exists and is of type "expense"
     get_valid_category(db, expense_data.category_id, "expense")
 

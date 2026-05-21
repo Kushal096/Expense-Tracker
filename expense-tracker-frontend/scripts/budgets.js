@@ -66,7 +66,6 @@ function getFilteredBudgets() {
         //     return false;
         // }
 
-        // BUG #9: String comparison instead of number - "5" > "80" returns false
         if (categoryId && String(budget.category_id) !== String(categoryId)) {
             return false;
         }
@@ -78,8 +77,7 @@ function getFilteredBudgets() {
                 : 0;
             if (status === "within" && usagePercent > 100) return false;
             if (status === "exceeded" && usagePercent <= 100) return false;
-            // BUG #9: String comparison bug - comparing string "80" instead of number 80
-            if (status === "warning" && usagePercent <= "80") return false;  
+            if (status === "warning" && (usagePercent <= 80 || usagePercent > 100)) return false;
         }
 
         return true;

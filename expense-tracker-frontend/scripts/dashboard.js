@@ -2,8 +2,7 @@ let trendsChartInstance = null;
 let categoryChartInstance = null;
 let savingsTrendsChartInstance = null;
 let cashflowChartInstance = null;
-// BUG #7: Off-by-one error - pagination starts at 1 but API expects 0-based indexing
-let transactionsPage = 1;  // BUG #7: Should start at 0 for 0-based pagination
+let transactionsPage = 1;
 const transactionsPageSize = 10;
 
 // Analytics customization state
@@ -55,7 +54,7 @@ async function loadAnalyticsData() {
   try {
     showLoading();
     const [financialScoreResult, aiInsightsResult, savingsTrendsResult, cashflowResult, dashboardOverviewResult] = await Promise.allSettled([
-      apiCall("/analytics/financial-sore"),  // BUG #1: Typo - should be 'financial-score' not 'financial-sore'
+      apiCall("/analytics/financial-score"),
       apiCall("/ai/financial-insights", "POST", { period: analyticsState.dashboardPeriod }),
       apiCall(`/analytics/savings-trends?months=${analyticsState.savingsTrendsMonths}`),
       apiCall(`/analytics/cashflow?months=${analyticsState.cashflowMonths}`),
@@ -70,8 +69,6 @@ async function loadAnalyticsData() {
 
     renderFinancialScore(financialScoreData || {}, aiInsightsData);
 
-    // BUG #1: Typo in endpoint (financial-sore instead of financial-score)
-    // This will cause 404 error
     if (savingsTrendsData) {
       renderSavingsTrendsChart(savingsTrendsData);
     }

@@ -41,7 +41,6 @@ def read_expenses(
     return get_expenses_by_user(db, extract_user_id(current_user))
 
 
-# BUG #8: No validation for negative amounts - backend accepts invalid data
 @router.post(
     "/",
     response_model=ExpenseResponse,
@@ -54,7 +53,6 @@ def create_new_expense(
     current_user: dict = Depends(get_current_user),
 ):
     """Create a new expense and return the created entity."""
-    # BUG #8: Missing validation - expense.amount should be > 0
     return create_expense(db, expense, extract_user_id(current_user))
 
 @router.patch(
