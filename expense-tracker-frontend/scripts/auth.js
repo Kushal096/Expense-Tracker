@@ -35,4 +35,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   goApp();
   showPage("dashboard");
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 });
