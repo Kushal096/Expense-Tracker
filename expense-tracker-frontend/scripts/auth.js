@@ -36,8 +36,10 @@ document.addEventListener("DOMContentLoaded", () => {
   goApp();
   showPage("dashboard");
 
-function capitalize(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+function showSignin() {
+  document.getElementById("signup").style.display = "none";
+  document.getElementById("signin").style.display = "block";
 }
+
 
 });
