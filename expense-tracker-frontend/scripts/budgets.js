@@ -370,6 +370,10 @@ function setupEventListeners() {
     });
 }
 
+ closeDeleteModalBtn.addEventListener("click", closeDeleteConfirmation);
+    cancelDeleteBtn.addEventListener("click", closeDeleteConfirmation);
+    confirmDeleteBtn.addEventListener("click", deleteBudget);
+
 document.addEventListener("DOMContentLoaded", async () => {
     requireAuth();
     setupEventListeners();
