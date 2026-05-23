@@ -253,7 +253,14 @@ async function executeEditExpense(e) {
     }
 
     const description = document.getElementById("editExpenseTitle").value;
+
     const amount = parseFloat(document.getElementById("editExpenseAmount").value);
+
+    if (isNaN(amount) || amount <= 0) {
+        showNotification("Amount must be greater than 0", "error");
+        return;
+    }
+
     const category_id = parseInt(document.getElementById("editExpenseCategory").value);
     const date = document.getElementById("editExpenseDate").value;
 
@@ -262,9 +269,14 @@ async function executeEditExpense(e) {
             const updatedExpense = await apiCall(`/expenses/${editingExpenseId}`, 'PATCH', {
                 description, amount, category_id, date
             });
-            expenses = expenses.map((e) => e.id === editingExpenseId ? updatedExpense : e);
+
+            expenses = expenses.map((e) =>
+                e.id === editingExpenseId ? updatedExpense : e
+            );
+
             renderExpenses();
             closeEditModal();
+
             showNotification('Expense updated successfully!', 'success');
         });
     } catch (error) {

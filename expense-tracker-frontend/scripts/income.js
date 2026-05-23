@@ -280,23 +280,43 @@ async function createIncome(e) {
     }
 
     const source = document.getElementById("title").value;
+
     const amount = parseFloat(document.getElementById("amount").value);
+
+    if (isNaN(amount) || amount <= 0) {
+        showNotification("Amount must be greater than 0", "error");
+        return;
+    }
+
     const category_id = parseInt(document.getElementById("category").value);
     const date = document.getElementById("date").value;
 
     try {
         await loadingManager.executeWithLoading(saveIncomeBtn, async () => {
             const newIncome = await apiCall('/incomes/', 'POST', {
-                source, amount, date, category_id,
+                source,
+                amount,
+                date,
+                category_id,
             });
+
             incomes.push(newIncome);
             renderIncomes();
             closeCreateModal();
+
             showNotification('Income created successfully!', 'success');
         });
     } catch (error) {
-        const message = getReadableErrorMessage(error, "Unable to add income.");
-        showNotification(`Failed to add income. ${message}`, 'error');
+        const message = getReadableErrorMessage(
+            error,
+            "Unable to add income."
+        );
+
+        showNotification(
+            `Failed to add income. ${message}`,
+            'error'
+        );
+
         console.error("Error creating income:", error);
     }
 }
