@@ -54,7 +54,7 @@ async function loadAnalyticsData() {
   try {
     showLoading();
     const [financialScoreResult, aiInsightsResult, savingsTrendsResult, cashflowResult, dashboardOverviewResult] = await Promise.allSettled([
-      apiCall("/analytics/financial-sore"),
+      apiCall("/analytics/financial-score"),
       apiCall("/ai/financial-insights", "POST", { period: analyticsState.dashboardPeriod }),
       apiCall(`/analytics/savings-trends?months=${analyticsState.savingsTrendsMonths}`),
       apiCall(`/analytics/cashflow?months=${analyticsState.cashflowMonths}`),
