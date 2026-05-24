@@ -162,7 +162,7 @@ function updateBudgetSummary() {
     document.getElementById("totalBudgetAmount").textContent = `$${totalBudget.toFixed(2)}`;
     document.getElementById("totalSpentAmount").textContent = `$${totalSpent.toFixed(2)}`;
 }
-//fix bug
+
 async function loadBudgets() {
     try {
         showLoading();
