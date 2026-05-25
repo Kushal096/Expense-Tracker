@@ -79,23 +79,29 @@ class BaseCRUDService(Generic[T, CreateSchema, ResponseSchema]):
         
         return self.response_schema.model_validate(db_obj)
 
-    def get_all_by_user(self, db: Session, user_id: int) -> List[ResponseSchema]:
-        """Fetch all entities belonging to a user.
-        
-        Args:
-            db: SQLAlchemy database session
-            user_id: ID of the user whose entities to retrieve
-        
-        Returns:
-            List[ResponseSchema]: List of entities. Empty list if user has none.
-        
-        Note:
-            - Query is filtered to ensure user isolation
-            - Results are returned in insertion order
-            - Safe to call when user has no entities (returns empty list)
-        """
-        entities = db.query(self.model).filter(self.model.user_id == user_id).all()
-        return [self.response_schema.model_validate(entity) for entity in entities]
+    def get_all_by_user(
+        self,
+        db: Session,
+        user_id: int,
+        page: int = 1,
+        limit: int = 10,
+    ) -> List[ResponseSchema]:
+        """Fetch paginated entities belonging to a user."""
+
+        offset = (page - 1) * limit
+
+        entities = (
+            db.query(self.model)
+            .filter(self.model.user_id == user_id)
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+
+        return [
+            self.response_schema.model_validate(entity)
+            for entity in entities
+        ]
 
     def get_by_id(
         self, db: Session, entity_id: int, user_id: int
@@ -181,9 +187,11 @@ class BaseCRUDService(Generic[T, CreateSchema, ResponseSchema]):
             .filter(self.model.id == entity_id, self.model.user_id == user_id)
             .first()
         )
+
         if not entity:
             return False
         
         db.delete(entity)
         db.commit()
+
         return True
