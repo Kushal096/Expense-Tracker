@@ -35,4 +35,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   goApp();
   showPage("dashboard");
+
+function showSignin() {
+  document.getElementById("signup").style.display = "none";
+  document.getElementById("signin").style.display = "block";
+}
+
+
 });
