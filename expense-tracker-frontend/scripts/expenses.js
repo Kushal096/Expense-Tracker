@@ -43,16 +43,34 @@ function normalizeText(value) {
 function getFilteredExpenses() {
     const searchTerm = normalizeText(searchExpenseInput?.value);
     const categoryId = filterCategoryInput?.value || "";
-    const minAmount = minExpenseAmountInput?.value === "" ? null : parseFloat(minExpenseAmountInput.value);
-    const maxAmount = maxExpenseAmountInput?.value === "" ? null : parseFloat(maxExpenseAmountInput.value);
+    const minAmount =
+        minExpenseAmountInput?.value === ""
+            ? null
+            : parseFloat(minExpenseAmountInput.value);
+
+    const maxAmount =
+        maxExpenseAmountInput?.value === ""
+            ? null
+            : parseFloat(maxExpenseAmountInput.value);
+
     const startDate = startExpenseDateInput?.value || "";
     const endDate = endExpenseDateInput?.value || "";
 
     return expenses.filter((expense) => {
-        const category = categories.find((c) => c.id === expense.category_id);
-        const description = normalizeText(expense.description || "Untitled");
-        const categoryName = normalizeText(category?.name || "Unknown");
+        const category = categories.find(
+            (c) => c.id === expense.category_id
+        );
+
+        const description = normalizeText(
+            expense.description || "Untitled"
+        );
+
+        const categoryName = normalizeText(
+            category?.name || "Unknown"
+        );
+
         const amountText = normalizeText(expense.amount);
+
         const expenseDate = getLocalISODate(expense.date);
 
         if (searchTerm) {
@@ -65,15 +83,28 @@ function getFilteredExpenses() {
             if (!matchesSearch) return false;
         }
 
-        if (categoryId && String(expense.category_id) !== String(categoryId)) {
+        if (
+            categoryId &&
+            String(expense.category_id) !== String(categoryId)
+        ) {
             return false;
         }
 
-        if (minAmount !== null && !Number.isNaN(minAmount) && expense.amount < minAmount) {
+       
+        if (
+            minAmount !== null &&
+            !Number.isNaN(minAmount) &&
+            Number(expense.amount) < Number(minAmount)
+        ) {
             return false;
         }
 
-        if (maxAmount !== null && !Number.isNaN(maxAmount) && expense.amount > maxAmount) {
+        
+        if (
+            maxAmount !== null &&
+            !Number.isNaN(maxAmount) &&
+            Number(expense.amount) > Number(maxAmount)
+        ) {
             return false;
         }
 

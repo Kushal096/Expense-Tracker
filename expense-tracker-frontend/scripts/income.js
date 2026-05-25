@@ -105,16 +105,35 @@ function attachFilterListeners() {
 function getFilteredIncomes() {
     const searchTerm = normalizeText(searchIncomeInput?.value);
     const categoryId = filterCategoryInput?.value || "";
-    const minAmount = minIncomeAmountInput?.value === "" ? null : parseFloat(minIncomeAmountInput.value);
-    const maxAmount = maxIncomeAmountInput?.value === "" ? null : parseFloat(maxIncomeAmountInput.value);
+
+    const minAmount =
+        minIncomeAmountInput?.value === ""
+            ? null
+            : parseFloat(minIncomeAmountInput.value);
+
+    const maxAmount =
+        maxIncomeAmountInput?.value === ""
+            ? null
+            : parseFloat(maxIncomeAmountInput.value);
+
     const startDate = startIncomeDateInput?.value || "";
     const endDate = endIncomeDateInput?.value || "";
 
     return incomes.filter((income) => {
-        const category = categories.find((c) => c.id === income.category_id);
-        const title = normalizeText(income.title || income.source || "Income");
-        const categoryName = normalizeText(category?.name || "Unknown");
+        const category = categories.find(
+            (c) => c.id === income.category_id
+        );
+
+        const title = normalizeText(
+            income.title || income.source || "Income"
+        );
+
+        const categoryName = normalizeText(
+            category?.name || "Unknown"
+        );
+
         const amountText = normalizeText(income.amount);
+
         const incomeDate = getLocalISODate(income.date);
 
         if (searchTerm) {
@@ -127,15 +146,28 @@ function getFilteredIncomes() {
             if (!matchesSearch) return false;
         }
 
-        if (categoryId && String(income.category_id) !== String(categoryId)) {
+        if (
+            categoryId &&
+            String(income.category_id) !== String(categoryId)
+        ) {
             return false;
         }
 
-        if (minAmount !== null && !Number.isNaN(minAmount) && income.amount < minAmount) {
+       
+        if (
+            minAmount !== null &&
+            !Number.isNaN(minAmount) &&
+            Number(income.amount) < Number(minAmount)
+        ) {
             return false;
         }
 
-        if (maxAmount !== null && !Number.isNaN(maxAmount) && income.amount > maxAmount) {
+       
+        if (
+            maxAmount !== null &&
+            !Number.isNaN(maxAmount) &&
+            Number(income.amount) > Number(maxAmount)
+        ) {
             return false;
         }
 
